@@ -124,6 +124,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     marginBottom: 20,
   },
+  hear: {
+    backgroundColor: '#9b59b6',
+    paddingVertical: 15,
+    paddingHorizontal: 20,
+    marginBottom: 20,
+  },
   headerText: {
     color: '#fff',
     fontSize: 28,
