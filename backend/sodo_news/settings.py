@@ -141,8 +141,8 @@ def sendResponse(action, resultCode, resultMessage, data):
 
 def connectDB():
     conn = psycopg2.connect(
-        #host="192.168.0.15",
-        host="59.153.86.254",
+        host="192.168.0.15",
+        #host="59.153.86.254",
         dbname="dbissw",
         user="userISSW",
         password="passissw",
