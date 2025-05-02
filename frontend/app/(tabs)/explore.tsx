@@ -178,7 +178,7 @@ export default function HomeScreen() {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Шинэ содон</Text>
         <FlatList
-          data={items.slice(10, 20)}
+          data={items.slice(10,35)}
           keyExtractor={(item, index) => index.toString()}
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -205,20 +205,20 @@ export default function HomeScreen() {
       </View>
 
       {/* Categories */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Ангилал</Text>
+      {/* <View style={styles.section}>
+        <Text style={styles.sectionTitle}></Text>
         <View style={styles.categories}>
           <TouchableOpacity style={styles.categoryCard}>
-            <Text style={styles.categoryText}>Спорт</Text>
+            <Text style={styles.categoryText}></Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.categoryCard}>
-            <Text style={styles.categoryText}>Технологи</Text>
+            <Text style={styles.categoryText}></Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.categoryCard}>
-            <Text style={styles.categoryText}>Улс төр</Text>
+            <Text style={styles.categoryText}></Text>
           </TouchableOpacity>
         </View>
-      </View>
+      </View> */}
 
     </ScrollView>
   );
