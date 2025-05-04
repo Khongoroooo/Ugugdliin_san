@@ -1,19 +1,53 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { useNavigation } from '@react-navigation/native';
-import { Image } from 'react-native';
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+} from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import { useNavigation } from "@react-navigation/native";
+import { Image } from "react-native";
 
 export default function RegisterScreen() {
   const navigation = useNavigation();
-  const [name, setName] = useState('');
-  const [ovog, setOvog] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [repassword, setrePassword] = useState("");
+  const [successMessage, setSuccessMessage] = useState(""); // Success message state
 
   const handleRegister = () => {
-    console.log('Register:', name, email, password);
-    // Register logic here
+    if (repassword !== password) {
+      alert("Нууц үг таарахгүй байна");
+      return;
+    }
+
+    const form = {
+      action: "register",
+      email: email,
+      password: password,
+    };
+
+    fetch("http://127.0.0.1:8000/user/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(form),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        setSuccessMessage("Амжилттай бүртгэгдлээ!"); // Show success message
+        setEmail("");
+        setPassword("");
+        setrePassword("");
+
+        console.log(data);
+        // if (data.resultCode === 200) {
+        // }
+      })
+      .catch((error) => console.error("Алдаа гарлаа:", error));
   };
 
   return (
@@ -21,7 +55,7 @@ export default function RegisterScreen() {
       {/* Logo хэсэг */}
       <View style={styles.logoContainer}>
         <Image
-          source={require('../../assets/images/sodonews2.png')}
+          source={require("../../assets/images/sodonews2.png")}
           style={styles.logoImage}
           resizeMode="contain"
         />
@@ -29,20 +63,6 @@ export default function RegisterScreen() {
 
       {/* Input талбарууд */}
       <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.input}
-          placeholder="Нэр"
-          placeholderTextColor="#999"
-          value={name}
-          onChangeText={setName}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Овог"
-          placeholderTextColor="#999"
-          value={ovog}
-          onChangeText={setOvog}
-        />
         <TextInput
           style={styles.input}
           placeholder="Имэйл/Утасны дугаар"
@@ -58,12 +78,20 @@ export default function RegisterScreen() {
           value={password}
           onChangeText={setPassword}
         />
+        <TextInput
+          style={styles.input}
+          placeholder="Нууц үг давтах"
+          placeholderTextColor="#999"
+          secureTextEntry
+          value={repassword}
+          onChangeText={setrePassword}
+        />
       </View>
 
       {/* Register товч */}
       <TouchableOpacity onPress={handleRegister} style={styles.buttonContainer}>
         <LinearGradient
-          colors={['#9b59b6', '#e056fd']}
+          colors={["#9b59b6", "#e056fd"]}
           style={styles.button}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
@@ -72,8 +100,13 @@ export default function RegisterScreen() {
         </LinearGradient>
       </TouchableOpacity>
 
+      {/* Success message */}
+      {successMessage ? (
+        <Text style={styles.successMessage}>{successMessage}</Text> // Display success message
+      ) : null}
+
       {/* Login холбоос */}
-      <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+      <TouchableOpacity onPress={() => navigation.navigate("Login")}>
         <Text style={styles.registerText}>Нэвтрэх</Text>
       </TouchableOpacity>
     </View>
@@ -83,9 +116,9 @@ export default function RegisterScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ffffffff',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "#ffffffff",
+    alignItems: "center",
+    justifyContent: "center",
     paddingHorizontal: 30,
   },
   logoImage: {
@@ -94,40 +127,46 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   logoContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 40,
   },
   inputContainer: {
-    width: '100%',
+    width: "100%",
   },
   input: {
-    width: '100%',
+    width: "100%",
     height: 50,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 12,
     paddingHorizontal: 15,
     marginBottom: 15,
-    borderColor: '#ccc',
+    borderColor: "#ccc",
     borderWidth: 1,
   },
   buttonContainer: {
-    width: '100%',
+    width: "100%",
     marginBottom: 20,
   },
   button: {
     height: 50,
     borderRadius: 25,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   buttonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   registerText: {
-    color: '#5d3fd3',
+    color: "#5d3fd3",
     marginTop: 10,
     fontSize: 16,
+  },
+  successMessage: {
+    color: "green",
+    fontSize: 16,
+    fontWeight: "bold",
+    marginTop: 10,
   },
 });

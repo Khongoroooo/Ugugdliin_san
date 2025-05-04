@@ -1,311 +1,262 @@
 import React, { useState, useEffect, useRef } from "react";
 import {
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
   View,
-  Image,
-  Animated,
-  TouchableOpacity,
-  SafeAreaView,
-  StyleSheet,
-} from "react-native";
-import {
-  TextInput,
-  Button,
   Text,
-  Surface,
-  Provider as PaperProvider,
-  Menu,
-  DefaultTheme,
-  MD3DarkTheme,
-} from "react-native-paper";
-import * as ImagePicker from "expo-image-picker";
+  FlatList,
+  Image,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+  Animated,
+  Dimensions,
+  Easing,
+  TextInput,
+} from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import { router } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-// Animated хувилбарууд
-const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
-const AnimatedText = Animated.createAnimatedComponent(Text);
+const { width } = Dimensions.get("window");
+
+const ad = {
+  id: 1,
+  image: "https://media.tenor.com/ZZFQEc-67xYAAAAM/surprised-sorprendido.gif",
+  text: "🎉 Emart цочир хямдрал 9999₮ 🎉",
+};
+
+const StarRating = ({ rating, onRatingChange }) => {
+  const stars = [1, 2, 3, 4, 5];
+  return (
+    <View style={styles.starContainer}>
+      {stars.map((star) => (
+        <TouchableOpacity key={star} onPress={() => onRatingChange(star)}>
+          <Text style={star <= rating ? styles.filledStar : styles.emptyStar}>
+            ★
+          </Text>
+        </TouchableOpacity>
+      ))}
+    </View>
+  );
+};
+
+const calculateAverageRating = (ratings) => {
+  if (ratings.length === 0) return 0;
+  const sum = ratings.reduce((a, b) => a + b, 0);
+  return sum / ratings.length;
+};
 
 export default function HomeScreen() {
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
-  const [huraangvi, setHuraangvi] = useState("");
-  const [categoryName, setCategoryName] = useState("");
-  const [catArray, setCatArray] = useState<string[]>([]);
-  const [menuVisible, setMenuVisible] = useState(false);
-  const [successMessage, setSuccessMessage] = useState("");
-  const [imageUri, setImageUri] = useState<string | null>(null);
-  const [isNightMode, setIsNightMode] = useState(false);
-
-  const animation = useRef(new Animated.Value(0)).current;
+  const [items, setItems] = useState([]);
+  const [usdRate, setUsdRate] = useState("Loading...");
+  const translateX = useRef(new Animated.Value(width)).current;
+  const [token, setToken] = useState<string | null>(null);
 
   useEffect(() => {
-    Animated.timing(animation, {
-      toValue: isNightMode ? 1 : 0,
-      duration: 500,
-      useNativeDriver: false,
-    }).start();
-  }, [isNightMode]);
-
-  const bgColor = animation.interpolate({
-    inputRange: [0, 1],
-    outputRange: ["#FFFFFF", "#2C2C2C"],
-  });
-
-  const textColor = animation.interpolate({
-    inputRange: [0, 1],
-    outputRange: ["#000000", "#E0E0E0"],
-  });
-
-  const inputBg = animation.interpolate({
-    inputRange: [0, 1],
-    outputRange: ["#F5F5F5", "#333333"],
-  });
-
-  const buttonColor = animation.interpolate({
-    inputRange: [0, 1],
-    outputRange: ["#6200ee", "#7f39fb"],
-  });
-
-  const theme = isNightMode
-    ? { ...MD3DarkTheme, colors: { ...MD3DarkTheme.colors, background: "#2C2C2C" } }
-    : { ...DefaultTheme, colors: { ...DefaultTheme.colors, background: "#FFFFFF" } };
-
+    const fetchToken = async () => {
+      const t = await AsyncStorage.getItem("token");
+      setToken(t);
+      console.log(`############ token: ${t}`);
+    };
+    fetchToken();
+  }, []);
+  
   useEffect(() => {
-  fetch("http://127.0.0.1:8000/user/", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ action: "getnewslist" }),
-  })
-    .then((res) => res.json())
-    .then((data) => {
-      const filtered = data.data
-        .map((e: any) => e.category_name)
-        .filter((name: any): name is string => typeof name === "string");
-      setCatArray([...new Set(filtered)]);
-    })
-    .catch((err) => console.error("Fetch error:", err));
-}, []);
-
-
-  const pickImage = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      quality: 1,
-    });
-    if (!result.canceled) {
-      setImageUri(result.assets[0].uri);
-    }
-  };
-
-  const handleSubmit = () => {
-    if (!title || !content || !huraangvi || !categoryName) {
-      alert("Бүх талбарыг бөглөнө үү.");
-      return;
-    }
-
     fetch("http://127.0.0.1:8000/user/", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        action: "add_news",
-        news_title: title,
-        content: content,
-        huraangvi: huraangvi,
-        categoryName: categoryName,
-        image_url: imageUri ?? "https://example.com/default.jpg",
-      }),
+      body: JSON.stringify({ action: "getnewslist" }),
     })
       .then((res) => res.json())
-      .then(() => {
-        setSuccessMessage("Амжилттай бүртгэгдлээ!");
-        setTitle("");
-        setContent("");
-        setHuraangvi("");
-        setCategoryName("");
-        setImageUri(null);
-        setTimeout(() => setSuccessMessage(""), 3000);
+      .then((data) => {
+        if (data.resultCode === 200) {
+          setItems(data.data);
+        }
       })
-      .catch((error) => {
-        console.error(error);
-        alert("Мэдээ илгээхэд алдаа гарлаа.");
-      });
+      .catch((err) => console.log(err));
+    startScrolling();
+  }, []);
+
+
+  const startScrolling = () => {
+    translateX.setValue(width);
+    Animated.timing(translateX, {
+      toValue: -width,
+      duration: 12000,
+      useNativeDriver: true,
+      easing: Easing.linear,
+    }).start(() => {
+      startScrolling();
+    });
+  };
+
+  const handleRatingChange = (itemId, newRating) => {
+    const updatedItems = items.map((item) => {
+      if (item.id === itemId) {
+        const updatedRatings = item.ratings
+          ? [...item.ratings, newRating]
+          : [newRating];
+        return { ...item, ratings: updatedRatings };
+      }
+      return item;
+    });
+    setItems(updatedItems);
   };
 
   return (
-    <PaperProvider theme={theme}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        style={{ flex: 1 }}
-      >
-        <Animated.View style={[styles.container, { backgroundColor: bgColor }]}>
-          <ScrollView contentContainerStyle={styles.scrollView}>
-            <Surface style={styles.surface}>
-              {/* Title */}
-              <Animated.View style={[styles.inputContainer, { backgroundColor: inputBg }]}>
-                <AnimatedTextInput
-                  label="Гарчиг"
-                  mode="flat"
-                  value={title}
-                  onChangeText={setTitle}
-                  style={[styles.textInput, { color: textColor }]}
-                  underlineColor="transparent"
-                  activeUnderlineColor="#6200ee"
-                />
-              </Animated.View>
+    <ScrollView style={styles.container}>
+      {/* Header Section */}
+      <LinearGradient colors={["#9b59b6", "#e056fd"]} style={styles.header}>
+        <Text style={styles.headerText}>SodoNews</Text>
+        <Text style={styles.infoText}>{usdRate}</Text>
 
-              {/* Summary */}
-              <Animated.View style={[styles.inputContainer, { backgroundColor: inputBg }]}>
-                <AnimatedTextInput
-                  label="Хураангүй"
-                  mode="flat"
-                  value={huraangvi}
-                  onChangeText={setHuraangvi}
-                  style={[styles.textInput, { color: textColor }]}
-                  underlineColor="transparent"
-                  activeUnderlineColor="#6200ee"
-                />
-              </Animated.View>
-
-              {/* Content */}
-              <Animated.View style={[styles.inputContainer, { backgroundColor: inputBg }]}>
-                <AnimatedTextInput
-                  label="Агуулга"
-                  mode="flat"
-                  value={content}
-                  onChangeText={setContent}
-                  multiline
-                  numberOfLines={5}
-                  style={[styles.textInput, { color: textColor }]}
-                  underlineColor="transparent"
-                  activeUnderlineColor="#6200ee"
-                />
-              </Animated.View>
-
-              {/* Dropdown */}
-              <Menu
-                visible={menuVisible}
-                onDismiss={() => setMenuVisible(false)}
-                anchor={
-                  <TouchableOpacity onPress={() => setMenuVisible(true)}>
-                    <Animated.View style={[styles.inputContainer, { backgroundColor: inputBg }]}>
-                      <AnimatedTextInput
-                        label="Төрөл сонгох"
-                        value={categoryName}
-                        mode="flat"
-                        editable={false}
-                        pointerEvents="none"
-                        style={[styles.textInput, { color: textColor }]}
-                        underlineColor="transparent"
-                      />
-                    </Animated.View>
-                  </TouchableOpacity>
-                }
+        <View style={styles.searchContainer}>
+          <TextInput
+            style={styles.searchBar}
+            placeholder="Хайх"
+            placeholderTextColor="#999"
+          />
+          <View style={styles.headerButtons}>
+            {token != null ? (
+              // Хэрвээ token байгаа бол — Гарах товч
+              <TouchableOpacity
+                onPress={async () => {
+                  await AsyncStorage.removeItem("token");
+                  router.replace("/explore");
+                }}
+                style={styles.headerButton}
               >
-                {catArray.map((cat, index) => (
-                  <Menu.Item
-                    key={index}
-                    onPress={() => {
-                      setCategoryName(cat);
-                      setMenuVisible(false);
-                    }}
-                    title={cat}
-                  />
-                ))}
-              </Menu>
+                <Text style={styles.headerButtonText}>Гарах</Text>
+              </TouchableOpacity>
+            ) : (
+              <>
+                <TouchableOpacity
+                  onPress={() => router.push("/LoginScreen")}
+                  style={styles.headerButton}
+                >
+                  <Text style={styles.headerButtonText}>Нэвтрэх</Text>
+                </TouchableOpacity>
 
-              {/* Image Button */}
-              <Animated.View style={styles.buttonContainer}>
-                <Button icon="image" mode="outlined" onPress={pickImage}>
-                  Зураг сонгох
-                </Button>
-              </Animated.View>
+                <TouchableOpacity
+                  onPress={() => router.push("/RegisterScreen")}
+                  style={styles.headerButton}
+                >
+                  <Text style={styles.headerButtonText}>Бүртгүүлэх</Text>
+                </TouchableOpacity>
+              </>
+            )}
+          </View>
+        </View>
+      </LinearGradient>
 
-              {/* Preview Image */}
-              {imageUri && (
-                <Image source={{ uri: imageUri }} style={styles.image} />
-              )}
-
-              {/* Submit Button */}
-              <Animated.View style={[styles.buttonContainer, { backgroundColor: buttonColor, borderRadius: 8 }]}>
-  <Button mode="contained" onPress={handleSubmit} textColor="#fff">
-    Хадгалах
-  </Button>
-</Animated.View>
-
-              {/* Success message */}
-              {successMessage ? (
-                <AnimatedText style={[styles.successMessage, { color: isNightMode ? "#90ee90" : "green" }]}>
-                  {successMessage}
-                </AnimatedText>
-              ) : null}
-            </Surface>
-          </ScrollView>
-
-          {/* Theme Toggle */}
-          <TouchableOpacity
-            onPress={() => setIsNightMode(!isNightMode)}
-            style={styles.toggleButton}
-          >
-            <AnimatedText style={styles.toggleText}>
-              {isNightMode ? "🌙" : "🌞"}
-            </AnimatedText>
-          </TouchableOpacity>
+      {/* Scrolling Ad */}
+      <View style={styles.adContainer}>
+        <Animated.View
+          style={[styles.adContent, { transform: [{ translateX }] }]}
+        >
+          <Image source={{ uri: ad.image }} style={styles.adImage} />
+          <Text style={styles.adText}>{ad.text}</Text>
         </Animated.View>
-      </KeyboardAvoidingView>
-    </PaperProvider>
+      </View>
+
+      {/* News Cards */}
+      <FlatList
+        data={items}
+        keyExtractor={(item, index) => index.toString()}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ padding: 10 }}
+        renderItem={({ item }) => (
+          <TouchableOpacity style={styles.card}>
+            <Image
+              source={{
+                uri: item.image_url || "https://via.placeholder.com/300x180",
+              }}
+              style={styles.cardImage}
+            />
+            <View style={styles.cardContent}>
+              <Text style={styles.cardTitle}>{item.news_title}</Text>
+              <Text style={styles.cardDescription}>{item.huraangvi}</Text>
+              <StarRating
+                rating={calculateAverageRating(item.ratings || [])}
+                onRatingChange={(rating) => handleRatingChange(item.id, rating)}
+              />
+              <Text style={styles.cardRating}>
+                {calculateAverageRating(item.ratings || []).toFixed(1)}
+              </Text>
+            </View>
+          </TouchableOpacity>
+        )}
+      />
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    height: '100%',
-    paddingTop: 10,
-    paddingBottom: 20,
+  container: { flex: 1, backgroundColor: "#fff" },
+  header: { padding: 20, paddingTop: 40 },
+  headerText: { color: "#fff", fontSize: 28, fontWeight: "bold" },
+  infoText: { color: "#f0f0f0", marginTop: 5 },
+  searchContainer: { marginTop: 15 },
+  searchBar: {
+    backgroundColor: "#fff",
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    borderRadius: 20,
+    fontSize: 14,
   },
-  scrollView: {
-    flexGrow: 1,
-    padding: 20,
+  headerButtons: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 10,
   },
-  surface: {
-    padding: 20,
+  headerButton: {
+    backgroundColor: "#ffffff30",
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+    borderRadius: 20,
+  },
+  headerButtonText: { color: "#fff", fontWeight: "bold" },
+  adContainer: {
+    height: 70,
+    overflow: "hidden",
+    backgroundColor: "#fff",
+    justifyContent: "center",
+  },
+  adContent: { flexDirection: "row", alignItems: "center" },
+  adImage: { width: 50, height: 50, marginHorizontal: 10, borderRadius: 10 },
+  adText: { fontSize: 16, fontWeight: "bold", color: "#000" },
+  card: {
+    backgroundColor: "#fdfbff",
+    borderRadius: 16,
+    marginRight: 15,
+    width: 260,
     elevation: 4,
-    backgroundColor: "transparent",
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 6,
   },
-  inputContainer: {
-    backgroundColor: "#F5F5F5",
-    borderRadius: 10,
-    marginBottom: 10,
-    paddingHorizontal: 10,
-  },
-  textInput: {
-    backgroundColor: "transparent",
-  },
-  buttonContainer: {
-    marginTop: 10,
-  },
-  image: {
+  cardImage: {
     width: "100%",
-    height: 200,
-    marginTop: 10,
-    borderRadius: 15,
-    resizeMode: 'cover',
+    height: 160,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
   },
-  successMessage: {
-    marginTop: 10,
-    textAlign: "center",
+  cardContent: { padding: 12 },
+  cardTitle: { fontSize: 16, fontWeight: "600", color: "#2c2c2c" },
+  cardDescription: {
+    fontSize: 13,
+    color: "#666",
+    marginTop: 6,
+    lineHeight: 18,
   },
-  toggleButton: {
-    position: "absolute",
-    bottom: 30,
-    right: 20,
-    padding: 10,
-    borderRadius: 25,
-    zIndex: 999,
+  cardRating: {
+    fontSize: 13,
+    fontWeight: "bold",
+    color: "#FFD700",
+    marginTop: 8,
   },
-  toggleText: {
-    fontSize: 24,
-  },
+  starContainer: { flexDirection: "row", marginTop: 5, gap: 4 },
+  filledStar: { color: "#FFD700", fontSize: 18 },
+  emptyStar: { color: "#D3D3D3", fontSize: 18 },
 });

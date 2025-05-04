@@ -1,32 +1,63 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { useNavigation } from '@react-navigation/native';
-import data from "../../app.json"
-import { Image } from 'react-native'
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+} from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import { useNavigation } from "@react-navigation/native";
+import data from "../../app.json";
+import { Image } from "react-native";
+import { router } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function LoginScreen() {
   const navigation = useNavigation();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [medee, setMedee] = useState('');
- 
-
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [medee, setMedee] = useState("");
+  const handleLogin = async () => {
+    const form = {
+      action: "login",
+      email: email,
+      password: password,
+    };
   
-  const handleLogin = () => {
-    console.log('Login:', email, password);
+    try {
+      const res = await fetch("http://127.0.0.1:8000/user/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(form),
+      });
+  
+      const data = await res.json(); // response-ийг json болгож хөрвүүлэх
+      if (data.resultCode === 200) {
+        await AsyncStorage.setItem("token", "бүртгэлтэй"); // await ашиглан token хадгална
+        router.replace("/(tabs)/explore"); // Шилжих
+      } else {
+        console.log(data);
+        return;
+      }
+    } catch (error) {
+      console.error("Алдаа гарлаа:", error); // Алдааг барих
+    }
   };
-
+  
+  
   return (
     <View style={styles.container}>
       {/* Logo хэсэг */}
       <View style={styles.logoContainer}>
-  <Image
-    source={require('../../assets/images/sodonews2.png')}
-    style={styles.logoImage}
-    resizeMode="contain"
-  />
-</View>
+        <Image
+          source={require("../../assets/images/sodonews2.png")}
+          style={styles.logoImage}
+          resizeMode="contain"
+        />
+      </View>
 
       {/* Input талбарууд */}
       <View style={styles.inputContainer}>
@@ -57,7 +88,7 @@ export default function LoginScreen() {
       {/* Login товч */}
       <TouchableOpacity onPress={handleLogin} style={styles.buttonContainer}>
         <LinearGradient
-          colors={['#9b59b6', '#e056fd']}
+          colors={["#9b59b6", "#e056fd"]}
           style={styles.button}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
@@ -77,9 +108,9 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ffffffff',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "#ffffffff",
+    alignItems: "center",
+    justifyContent: "center",
     paddingHorizontal: 30,
   },
   logoImage: {
@@ -88,67 +119,67 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   logoContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 40,
   },
   logo: {
     width: 60,
     height: 60,
-    backgroundColor: '#9b59b6',
+    backgroundColor: "#9b59b6",
     borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   logoText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 32,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   title: {
     marginTop: 10,
     fontSize: 28,
-    fontWeight: 'bold',
-    color: '#5d3fd3',
+    fontWeight: "bold",
+    color: "#5d3fd3",
   },
   inputContainer: {
-    width: '100%',
+    width: "100%",
   },
   input: {
-    width: '100%',
+    width: "100%",
     height: 50,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 12,
     paddingHorizontal: 15,
     marginBottom: 15,
-    borderColor: '#ccc',
+    borderColor: "#ccc",
     borderWidth: 1,
   },
   optionsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    width: '100%',
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    width: "100%",
     marginBottom: 20,
   },
   optionText: {
-    color: '#555',
+    color: "#555",
   },
   buttonContainer: {
-    width: '100%',
+    width: "100%",
     marginBottom: 20,
   },
   button: {
     height: 50,
     borderRadius: 25,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   buttonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   registerText: {
-    color: '#5d3fd3',
+    color: "#5d3fd3",
     marginTop: 10,
     fontSize: 16,
   },
