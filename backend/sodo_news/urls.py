@@ -19,6 +19,5 @@ from django.urls import path
 from news_app import views
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
     path('user/', views.checkService), 
 ]

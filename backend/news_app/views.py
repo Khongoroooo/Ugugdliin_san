@@ -2,171 +2,156 @@ from django.shortcuts import render
 from django.http.response import JsonResponse
 from django.http import JsonResponse
 import json
-from sodo_news.settings import connectDB, sendResponse, resultMessages, disconnectDB
+from sodo_news.settings import connectDB, sendResponse, resultMessages, disconnectDB,sendMail
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.hashers import make_password, check_password
 from datetime import datetime, timezone
-
-# Create your views here.
-
-
-def getnewslist(request):
-    jsons = json.loads(request.body)
-    action = jsons['action']
-    todo = {}
-    try:
-
-        with connectDB() as conn:
-            query = f'''SELECT n.nid, news_title, n.content, huraangvi, image_url, category_name, author_name, published_at 
-                        FROM t_amay_news as n
-                        LEFT JOIN t_amay_news_category as c on c.category_id=n.category_id
-                        LEFT JOIN t_amay_news_authors as a on a.aid = n.author_id
-                        '''
-            cur = conn.cursor()
-            cur.execute(query)
-            columns = cur.description
-            rest = [{columns[index][0]: column
-                     for index, column in enumerate(value)} for value in cur.fetchall()]
-
-        resp = sendResponse(action, 200, "success", rest)
-
-    except Exception as e:
-        print(f"Алдаа гарлаа: {e}")
-    finally:
-        cur.close()
-
-        disconnectDB(conn)
-
-    return resp
-
-
-def add_news(request):
-    jsons = json.loads(request.body)
-    action = jsons['action']
-    try:
-
-        title = jsons['news_title']
-        content = jsons['content']
-        huraangvi = jsons['huraangvi']
-        img = jsons['image_url']
-    except KeyError as e:
-        print(f"Key алдаа: {e}")
-        return sendResponse(action, 400, "key dutuu", [])
-    try:
-        with connectDB() as conn:
-            cur = conn.cursor()
-
-
-            query = '''INSERT INTO t_amay_news (news_title, content, huraangvi, image_url, published_at)
-           VALUES (%s, %s, %s, %s, NOW()) RETURNING nid'''
-            cur.execute(query, (title, content, huraangvi, img))
-            result = cur.fetchone()[0]
-            conn.commit()
-            return sendResponse(action, 200, "Мэдээ амжилттай нэмэгдлээ", {"id": result})
-    except Exception as e:
-            print(f"DB алдаа: {e}")
-            return sendResponse(action, 500, "dotood aldaa", [])
-
+import uuid
 
 @csrf_exempt
 def checkService(request):
-    if request.method == "POST":
+    if request.method == 'POST':
         try:
-            jsons = json.loads(request.body)
-        except:
-            action = "invalid request json"
-            respData = []
-            resp = sendResponse(action, 404, "Error", respData)
-            return (JsonResponse(resp))
-        # print(jsons)
-        try:
-            action = jsons['action']
-        except:
-            action = "no action"
-            respData = []
-            resp = sendResponse(action, 400, "Error", respData)
-            return (JsonResponse(resp))
+            data = json.loads(request.body)
+        except Exception as e:
+            res = sendResponse(4001)
+            return JsonResponse(res)
 
-        # print(action)
-        if (action == 'getnewslist'):
-            result = getnewslist(request)
-            return (JsonResponse(result))
-        elif(action == 'add_news'): 
-            result = add_news(request)
-            return (JsonResponse(result))
+        if 'action' not in data:
+            res = sendResponse(4002)
+            return JsonResponse(res)
 
+        if data['action'] == 'register':
+            res = register(request)
+            return JsonResponse(res)
+        elif data['action'] == 'login':
+            res = login(request)
+            return JsonResponse(res)
         else:
-            action = action
-            respData = []
-            resp = sendResponse(action, 406, "Error", respData)
-            return (JsonResponse(resp))
-    elif request.method == "GET":
-        return (JsonResponse({"method": "GET"}))
+            res = sendResponse(4003)
+            return JsonResponse(res)
+
+    elif request.method == 'GET':
+        with connectDB() as con:
+            try:
+                token = request.GET.get('token', 'detault_value')
+
+                cur = con.cursor()
+                query = f'''SELECT uid FROM public.t_amay_news_token WHERE token='{token}' and tokenenddate > NOW() '''
+                cur.execute(query)
+                pid = cur.fetchone()
+                if pid is None:
+                    res = sendResponse(1001, action='register')
+                    return JsonResponse(res)
+
+                query = f'''SELECT is_verified FROM public.t_amay_news  WHERE nid='{pid[0]}' '''
+                cur.execute(query)
+                data=cur.fetchone()[0]
+
+                if data is True:
+                    res = sendResponse(1002, action='register')
+                    return JsonResponse(res)
+
+                query = f'''UPDATE public.t_amay_news
+                            SET is_verified=true
+                            WHERE nid={pid[0]}  '''
+                cur.execute(query)
+
+                con.commit()
+                res = sendResponse(200, action='register')
+                return JsonResponse(res)
+            except Exception as e:
+                res = sendResponse(5004)
+                return JsonResponse(res)
     else:
-        return (JsonResponse({"method": "busad"}))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        res = sendResponse(405)
+        return JsonResponse(res)
+
+
+def login(request):
+    try:
+        jsons = json.loads(request.body)
+        email = jsons['email']
+        password = jsons['password']
+    except Exception as e:
+        res = sendResponse(4006)
+        return res
+
+    try:
+        with connectDB() as con:
+            cur = con.cursor()
+
+            query = f'''SELECT email FROM public.t_amay_news
+                        WHERE email='{email}' '''
+            cur.execute(query)
+            data = cur.fetchone()
+
+            if not data:
+                res = sendResponse(1004)
+                return res
+
+            query = f'''SELECT password, author_name, nid  FROM public.t_amay_news
+                        WHERE email='{email}' and is_verified=true '''
+            cur.execute(query)
+            data = cur.fetchone()
+
+            if not data:
+                res = sendResponse(4008)
+                return res
+
+            if not check_password(password, data[0]):
+                res = sendResponse(4007)
+                return res
+
+            resJson = {
+                'nid': data[2],
+                'author_name': data[1]
+            }
+            res = sendResponse(200, [resJson])
+            return res
+    except Exception as e:
+        print(f'###################{e}')
+        res = sendResponse(5001)
+        return res
+# login
+def register(request):
+    
+    data = json.loads(request.body)
+    try:
+        email = data['email']
+        password = data['password']
+    except:
+        return sendResponse(4004)
+    try:
+        with connectDB() as con:
+            cur = con.cursor()
+            query = f'''SELECT COUNT(*) FROM public.t_amay_news WHERE email='{email}' '''
+            cur.execute(query)
+            dataFromDb = cur.fetchone()[0]
+
+            if dataFromDb != 0:
+                return sendResponse(1000,action="register",data=[])
+
+            query = f'''INSERT INTO public.t_amay_news(
+                            email, password, is_verified, created_date)
+                            VALUES ( '{email}', '{make_password(password)}', false, NOW() )
+                            RETURNING nid;'''
+            cur.execute(query)
+            nid = cur.fetchone()[0]
+
+            token = str(uuid.uuid4())
+            query = f'''INSERT INTO public.t_amay_news_token(
+                             uid, token, tokentype, tokenenddate, createddate)
+                            VALUES ( {nid}, '{token}', 'register', NOW() + interval '1 day', NOW() );'''
+            cur.execute(query)
+
+            bodyHTML = F"""<a target='_blank' href=http://127.0.0.1:8000/user?token={token}>CLICK ME</a>"""
+            sendMail(email, 'Баталгаажуулах код', bodyHTML)
+            con.commit()
+
+            print(f"##################11 юу хийгээд байгааг ойлгоу байнуу")
+            return sendResponse(200, action='register',data=[])
+        
+    except Exception as e:
+        print(f'###############################: {e}')
+        return sendResponse(5004)
