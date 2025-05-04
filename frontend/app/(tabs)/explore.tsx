@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet, ScrollView, Animated, Dimensions, Easing } from 'react-native';
+import {
+  View, Text, FlatList, Image, TouchableOpacity, StyleSheet,
+  ScrollView, Animated, Dimensions, Easing, TextInput
+} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 const { width } = Dimensions.get('window');
@@ -10,7 +13,7 @@ const ad = {
   text: '🎉 Emart цочир хямдрал 9999₮ 🎉',
 };
 
-const StarRating = ({ rating, onRatingChange }: { rating: number, onRatingChange: (rating: number) => void }) => {
+const StarRating = ({ rating, onRatingChange }) => {
   const stars = [1, 2, 3, 4, 5];
   return (
     <View style={styles.starContainer}>
@@ -23,7 +26,7 @@ const StarRating = ({ rating, onRatingChange }: { rating: number, onRatingChange
   );
 };
 
-const calculateAverageRating = (ratings: number[]) => {
+const calculateAverageRating = (ratings) => {
   if (ratings.length === 0) return 0;
   const sum = ratings.reduce((a, b) => a + b, 0);
   return sum / ratings.length;
@@ -76,8 +79,8 @@ export default function HomeScreen() {
     });
   };
 
-  const handleRatingChange = (itemId: number, newRating: number) => {
-    const updatedItems = items.map((item: any) => {
+  const handleRatingChange = (itemId, newRating) => {
+    const updatedItems = items.map((item) => {
       if (item.id === itemId) {
         const updatedRatings = item.ratings ? [...item.ratings, newRating] : [newRating];
         return { ...item, ratings: updatedRatings };
@@ -89,22 +92,17 @@ export default function HomeScreen() {
 
   return (
     <ScrollView style={styles.container}>
-      {/* Header */}
+      {/* Header Section */}
       <LinearGradient colors={['#9b59b6', '#e056fd']} style={styles.header}>
-        <View>
-          <Text style={styles.headerText}>sodonews</Text>
-          <View style={styles.infoRow}>
-            <Text style={styles.infoText}>{usdRate}</Text>
-          </View>
-        </View>
+        <Text style={styles.headerText}>SodoNews</Text>
+        <Text style={styles.infoText}>{usdRate}</Text>
 
-        <View style={styles.headerButtons}>
-          <TouchableOpacity style={styles.headerButton}>
-            <Text style={styles.headerButtonText}>Нэвтрэх</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.headerButton}>
-            <Text style={styles.headerButtonText}>Бүртгүүлэх</Text>
-          </TouchableOpacity>
+        <View style={styles.searchContainer}>
+          <TextInput style={styles.searchBar} placeholder="Хайх" placeholderTextColor="#999" />
+          <View style={styles.headerButtons}>
+            <TouchableOpacity style={styles.headerButton}><Text style={styles.headerButtonText}>Нэвтрэх</Text></TouchableOpacity>
+            <TouchableOpacity style={styles.headerButton}><Text style={styles.headerButtonText}>Бүртгүүлэх</Text></TouchableOpacity>
+          </View>
         </View>
       </LinearGradient>
 
@@ -116,139 +114,69 @@ export default function HomeScreen() {
         </Animated.View>
       </View>
 
-      {/* Sections */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Улс төр</Text>
-        <FlatList
-          data={items.slice(0, 5)}
-          keyExtractor={(item, index) => index.toString()}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          renderItem={({ item }: any) => (
-            <TouchableOpacity style={styles.card}>
-              <Image
-                source={{ uri: item.image_url || 'https://via.placeholder.com/300x180' }}
-                style={styles.cardImage}
+      {/* News Cards */}
+      <FlatList
+        data={items}
+        keyExtractor={(item, index) => index.toString()}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ padding: 10 }}
+        renderItem={({ item }) => (
+          <TouchableOpacity style={styles.card}>
+            <Image source={{ uri: item.image_url || 'https://via.placeholder.com/300x180' }} style={styles.cardImage} />
+            <View style={styles.cardContent}>
+              <Text style={styles.cardTitle}>{item.news_title}</Text>
+              <Text style={styles.cardDescription}>{item.huraangvi}</Text>
+              <StarRating
+                rating={calculateAverageRating(item.ratings || [])}
+                onRatingChange={(rating) => handleRatingChange(item.id, rating)}
               />
-              <View style={styles.cardContent}>
-                <Text style={styles.cardTitle}>{item.news_title}</Text>
-                <Text style={styles.cardDescription}>{item.huraangvi}</Text>
-                <StarRating
-                  rating={calculateAverageRating(item.ratings || [])}
-                  onRatingChange={(rating) => handleRatingChange(item.id, rating)}
-                />
-                <Text style={styles.cardRating}>
-                  {calculateAverageRating(item.ratings || []).toFixed(1)}
-                </Text>
-              </View>
-            </TouchableOpacity>
-          )}
-        />
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Тренд мэдээнүүд</Text>
-        <FlatList
-          data={items.slice(5, 10)}
-          keyExtractor={(item, index) => index.toString()}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          renderItem={({ item }: any) => (
-            <TouchableOpacity style={styles.card}>
-              <Image
-                source={{ uri: item.image_url || 'https://via.placeholder.com/300x180' }}
-                style={styles.cardImage}
-              />
-              <View style={styles.cardContent}>
-                <Text style={styles.cardTitle}>{item.news_title}</Text>
-                <Text style={styles.cardDescription}>{item.huraangvi}</Text>
-                <StarRating
-                  rating={calculateAverageRating(item.ratings || [])}
-                  onRatingChange={(rating) => handleRatingChange(item.id, rating)}
-                />
-                <Text style={styles.cardRating}>
-                  {calculateAverageRating(item.ratings || []).toFixed(1)}
-                </Text>
-              </View>
-            </TouchableOpacity>
-          )}
-        />
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Шинэ содон</Text>
-        <FlatList
-          data={items.slice(10,35)}
-          keyExtractor={(item, index) => index.toString()}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          renderItem={({ item }: any) => (
-            <TouchableOpacity style={styles.card}>
-              <Image
-                source={{ uri: item.image_url || 'https://via.placeholder.com/300x180' }}
-                style={styles.cardImage}
-              />
-              <View style={styles.cardContent}>
-                <Text style={styles.cardTitle}>{item.news_title}</Text>
-                <Text style={styles.cardDescription}>{item.huraangvi}</Text>
-                <StarRating
-                  rating={calculateAverageRating(item.ratings || [])}
-                  onRatingChange={(rating) => handleRatingChange(item.id, rating)}
-                />
-                <Text style={styles.cardRating}>
-                  {calculateAverageRating(item.ratings || []).toFixed(1)}
-                </Text>
-              </View>
-            </TouchableOpacity>
-          )}
-        />
-      </View>
-
-      {/* Categories */}
-      {/* <View style={styles.section}>
-        <Text style={styles.sectionTitle}></Text>
-        <View style={styles.categories}>
-          <TouchableOpacity style={styles.categoryCard}>
-            <Text style={styles.categoryText}></Text>
+              <Text style={styles.cardRating}>{calculateAverageRating(item.ratings || []).toFixed(1)}</Text>
+            </View>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.categoryCard}>
-            <Text style={styles.categoryText}></Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.categoryCard}>
-            <Text style={styles.categoryText}></Text>
-          </TouchableOpacity>
-        </View>
-      </View> */}
-
+        )}
+      />
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
-  header: { paddingVertical: 20, paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  header: { padding: 20, paddingTop: 40 },
   headerText: { color: '#fff', fontSize: 28, fontWeight: 'bold' },
-  infoRow: { marginTop: 5 },
-  infoText: { color: '#fff', fontSize: 12 },
-  headerButtons: { flexDirection: 'row', gap: 10 },
-  headerButton: { backgroundColor: '#ffffff40', paddingVertical: 6, paddingHorizontal: 10, borderRadius: 20 },
-  headerButtonText: { color: '#fff', fontSize: 14, fontWeight: 'bold' },
-  adContainer: { height: 70, overflow: 'hidden', backgroundColor: '#ffffff', justifyContent: 'center' },
+  infoText: { color: '#f0f0f0', marginTop: 5 },
+  searchContainer: { marginTop: 15 },
+  searchBar: {
+    backgroundColor: '#fff',
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    borderRadius: 20,
+    fontSize: 14,
+  },
+  headerButtons: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 },
+  headerButton: { backgroundColor: '#ffffff30', paddingVertical: 6, paddingHorizontal: 14, borderRadius: 20 },
+  headerButtonText: { color: '#fff', fontWeight: 'bold' },
+  adContainer: { height: 70, overflow: 'hidden', backgroundColor: '#fff', justifyContent: 'center' },
   adContent: { flexDirection: 'row', alignItems: 'center' },
-  adImage: { width: 60, height: 60, marginHorizontal: 10, borderRadius: 8 },
-  adText: { fontSize: 18, fontWeight: 'bold', color: '#000' },
-  section: { marginVertical: 20, paddingHorizontal: 15 },
-  sectionTitle: { fontSize: 24, fontWeight: 'bold', marginBottom: 10, color: '#9b59b6' },
-  card: { backgroundColor: '#f8e8ff', marginRight: 15, borderRadius: 12, overflow: 'hidden', width: 280, elevation: 3 },
-  cardImage: { width: '100%', height: 180 },
-  cardContent: { padding: 10 },
-  cardTitle: { fontSize: 18, fontWeight: 'bold', color: '#5d3fd3' },
-  cardDescription: { fontSize: 14, color: '#777', marginTop: 5 },
-  cardRating: { fontSize: 14, fontWeight: 'bold', color: '#FFD700', marginTop: 10 },
-  starContainer: { flexDirection: 'row', marginTop: 5 },
-  filledStar: { color: '#FFD700', fontSize: 20 },
-  emptyStar: { color: '#D3D3D3', fontSize: 20 },
-  categories: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 },
-  categoryCard: { backgroundColor: '#9b59b6', paddingVertical: 10, paddingHorizontal: 15, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
-  categoryText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+  adImage: { width: 50, height: 50, marginHorizontal: 10, borderRadius: 10 },
+  adText: { fontSize: 16, fontWeight: 'bold', color: '#000' },
+  card: {
+    backgroundColor: '#fdfbff',
+    borderRadius: 16,
+    marginRight: 15,
+    width: 260,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 6,
+  },
+  cardImage: { width: '100%', height: 160, borderTopLeftRadius: 16, borderTopRightRadius: 16 },
+  cardContent: { padding: 12 },
+  cardTitle: { fontSize: 16, fontWeight: '600', color: '#2c2c2c' },
+  cardDescription: { fontSize: 13, color: '#666', marginTop: 6, lineHeight: 18 },
+  cardRating: { fontSize: 13, fontWeight: 'bold', color: '#FFD700', marginTop: 8 },
+  starContainer: { flexDirection: 'row', marginTop: 5, gap: 4 },
+  filledStar: { color: '#FFD700', fontSize: 18 },
+  emptyStar: { color: '#D3D3D3', fontSize: 18 },
 });

@@ -1,0 +1,133 @@
+import React, { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useNavigation } from '@react-navigation/native';
+import { Image } from 'react-native';
+
+export default function RegisterScreen() {
+  const navigation = useNavigation();
+  const [name, setName] = useState('');
+  const [ovog, setOvog] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  const handleRegister = () => {
+    console.log('Register:', name, email, password);
+    // Register logic here
+  };
+
+  return (
+    <View style={styles.container}>
+      {/* Logo хэсэг */}
+      <View style={styles.logoContainer}>
+        <Image
+          source={require('../../assets/images/sodonews2.png')}
+          style={styles.logoImage}
+          resizeMode="contain"
+        />
+      </View>
+
+      {/* Input талбарууд */}
+      <View style={styles.inputContainer}>
+        <TextInput
+          style={styles.input}
+          placeholder="Нэр"
+          placeholderTextColor="#999"
+          value={name}
+          onChangeText={setName}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Овог"
+          placeholderTextColor="#999"
+          value={ovog}
+          onChangeText={setOvog}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Имэйл/Утасны дугаар"
+          placeholderTextColor="#999"
+          value={email}
+          onChangeText={setEmail}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Нууц үг"
+          placeholderTextColor="#999"
+          secureTextEntry
+          value={password}
+          onChangeText={setPassword}
+        />
+      </View>
+
+      {/* Register товч */}
+      <TouchableOpacity onPress={handleRegister} style={styles.buttonContainer}>
+        <LinearGradient
+          colors={['#9b59b6', '#e056fd']}
+          style={styles.button}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+        >
+          <Text style={styles.buttonText}>Бүртгүүлэх</Text>
+        </LinearGradient>
+      </TouchableOpacity>
+
+      {/* Login холбоос */}
+      <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+        <Text style={styles.registerText}>Нэвтрэх</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#ffffffff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 30,
+  },
+  logoImage: {
+    width: 300,
+    height: 200,
+    marginBottom: 20,
+  },
+  logoContainer: {
+    alignItems: 'center',
+    marginBottom: 40,
+  },
+  inputContainer: {
+    width: '100%',
+  },
+  input: {
+    width: '100%',
+    height: 50,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    paddingHorizontal: 15,
+    marginBottom: 15,
+    borderColor: '#ccc',
+    borderWidth: 1,
+  },
+  buttonContainer: {
+    width: '100%',
+    marginBottom: 20,
+  },
+  button: {
+    height: 50,
+    borderRadius: 25,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  registerText: {
+    color: '#5d3fd3',
+    marginTop: 10,
+    fontSize: 16,
+  },
+});

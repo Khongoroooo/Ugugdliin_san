@@ -3,11 +3,12 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  useColorScheme,
   View,
   Image,
   Animated,
   TouchableOpacity,
+  SafeAreaView,
+  StyleSheet,
 } from "react-native";
 import {
   TextInput,
@@ -15,11 +16,15 @@ import {
   Text,
   Surface,
   Provider as PaperProvider,
+  Menu,
   DefaultTheme,
   MD3DarkTheme,
-  Menu,
 } from "react-native-paper";
 import * as ImagePicker from "expo-image-picker";
+
+// Animated хувилбарууд
+const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
+const AnimatedText = Animated.createAnimatedComponent(Text);
 
 export default function HomeScreen() {
   const [title, setTitle] = useState("");
@@ -32,42 +37,56 @@ export default function HomeScreen() {
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [isNightMode, setIsNightMode] = useState(false);
 
-  const colorScheme = useColorScheme();
-  const theme = isNightMode
-    ? {
-        ...MD3DarkTheme,
-        colors: { ...MD3DarkTheme.colors, background: "#121212" },
-      }
-    : {
-        ...DefaultTheme,
-        colors: { ...DefaultTheme.colors, background: "#FFFFFF" },
-      };
-
-  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const animation = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 600,
-      useNativeDriver: true,
+    Animated.timing(animation, {
+      toValue: isNightMode ? 1 : 0,
+      duration: 500,
+      useNativeDriver: false,
     }).start();
-  }, []);
+  }, [isNightMode]);
+
+  const bgColor = animation.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["#FFFFFF", "#2C2C2C"],
+  });
+
+  const textColor = animation.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["#000000", "#E0E0E0"],
+  });
+
+  const inputBg = animation.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["#F5F5F5", "#333333"],
+  });
+
+  const buttonColor = animation.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["#6200ee", "#7f39fb"],
+  });
+
+  const theme = isNightMode
+    ? { ...MD3DarkTheme, colors: { ...MD3DarkTheme.colors, background: "#2C2C2C" } }
+    : { ...DefaultTheme, colors: { ...DefaultTheme.colors, background: "#FFFFFF" } };
 
   useEffect(() => {
-    fetch("http://127.0.0.1:8000/user/", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "getnewslist" }),
+  fetch("http://127.0.0.1:8000/user/", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action: "getnewslist" }),
+  })
+    .then((res) => res.json())
+    .then((data) => {
+      const filtered = data.data
+        .map((e: any) => e.category_name)
+        .filter((name: any): name is string => typeof name === "string");
+      setCatArray([...new Set(filtered)]);
     })
-      .then((res) => res.json())
-      .then((data) => {
-        const filtered = data.data
-          .filter((e: any) => e.category_name !== null)
-          .map((e: any) => e.category_name);
-        setCatArray([...new Set(filtered)]);
-      })
-      .catch((err) => console.error("Fetch error:", err));
-  }, []);
+    .catch((err) => console.error("Fetch error:", err));
+}, []);
+
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -118,57 +137,69 @@ export default function HomeScreen() {
     <PaperProvider theme={theme}>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
-        style={{ flex: 1, backgroundColor: theme.colors.background }}
+        style={{ flex: 1 }}
       >
-        <ScrollView contentContainerStyle={{ padding: 20, gap: 20, flexGrow: 1 }}>
-          <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
-            <Surface
-              style={{
-                flex: 1,
-                padding: 20,
-                elevation: 4,
-                justifyContent: "center",
-                backgroundColor: theme.colors.background,
-                // borderRadius: 12,
-              }}
-            >
-              <TextInput
-                label="Гарчиг"
-                mode="outlined"
-                value={title}
-                onChangeText={setTitle}
-                style={{ marginBottom: 10 }}
-              />
-              <TextInput
-                label="Хураангүй"
-                mode="outlined"
-                value={huraangvi}
-                onChangeText={setHuraangvi}
-                style={{ marginBottom: 10 }}
-              />
-              <TextInput
-                label="Агуулга"
-                mode="outlined"
-                value={content}
-                onChangeText={setContent}
-                multiline
-                numberOfLines={5}
-                style={{ marginBottom: 10 }}
-              />
+        <Animated.View style={[styles.container, { backgroundColor: bgColor }]}>
+          <ScrollView contentContainerStyle={styles.scrollView}>
+            <Surface style={styles.surface}>
+              {/* Title */}
+              <Animated.View style={[styles.inputContainer, { backgroundColor: inputBg }]}>
+                <AnimatedTextInput
+                  label="Гарчиг"
+                  mode="flat"
+                  value={title}
+                  onChangeText={setTitle}
+                  style={[styles.textInput, { color: textColor }]}
+                  underlineColor="transparent"
+                  activeUnderlineColor="#6200ee"
+                />
+              </Animated.View>
 
+              {/* Summary */}
+              <Animated.View style={[styles.inputContainer, { backgroundColor: inputBg }]}>
+                <AnimatedTextInput
+                  label="Хураангүй"
+                  mode="flat"
+                  value={huraangvi}
+                  onChangeText={setHuraangvi}
+                  style={[styles.textInput, { color: textColor }]}
+                  underlineColor="transparent"
+                  activeUnderlineColor="#6200ee"
+                />
+              </Animated.View>
+
+              {/* Content */}
+              <Animated.View style={[styles.inputContainer, { backgroundColor: inputBg }]}>
+                <AnimatedTextInput
+                  label="Агуулга"
+                  mode="flat"
+                  value={content}
+                  onChangeText={setContent}
+                  multiline
+                  numberOfLines={5}
+                  style={[styles.textInput, { color: textColor }]}
+                  underlineColor="transparent"
+                  activeUnderlineColor="#6200ee"
+                />
+              </Animated.View>
+
+              {/* Dropdown */}
               <Menu
                 visible={menuVisible}
                 onDismiss={() => setMenuVisible(false)}
                 anchor={
                   <TouchableOpacity onPress={() => setMenuVisible(true)}>
-                    <TextInput
-                      label="Төрөл сонгох"
-                      value={categoryName}
-                      mode="outlined"
-                      editable={false}
-                      pointerEvents="none"
-                      style={{ marginBottom: 10 }}
-                    />
+                    <Animated.View style={[styles.inputContainer, { backgroundColor: inputBg }]}>
+                      <AnimatedTextInput
+                        label="Төрөл сонгох"
+                        value={categoryName}
+                        mode="flat"
+                        editable={false}
+                        pointerEvents="none"
+                        style={[styles.textInput, { color: textColor }]}
+                        underlineColor="transparent"
+                      />
+                    </Animated.View>
                   </TouchableOpacity>
                 }
               >
@@ -184,49 +215,97 @@ export default function HomeScreen() {
                 ))}
               </Menu>
 
-              <Button mode="outlined" icon="image" onPress={pickImage}>
-                Зураг сонгох
-              </Button>
+              {/* Image Button */}
+              <Animated.View style={styles.buttonContainer}>
+                <Button icon="image" mode="outlined" onPress={pickImage}>
+                  Зураг сонгох
+                </Button>
+              </Animated.View>
+
+              {/* Preview Image */}
               {imageUri && (
-                <Image
-                  source={{ uri: imageUri }}
-                  style={{
-                    width: "100%",
-                    height: 200,
-                    marginTop: 10,
-                    // borderRadius: 10,
-                  }}
-                />
+                <Image source={{ uri: imageUri }} style={styles.image} />
               )}
-              <Button mode="contained" onPress={handleSubmit} style={{ marginTop: 20 }}>
-                Хадгалах
-              </Button>
+
+              {/* Submit Button */}
+              <Animated.View style={[styles.buttonContainer, { backgroundColor: buttonColor, borderRadius: 8 }]}>
+  <Button mode="contained" onPress={handleSubmit} textColor="#fff">
+    Хадгалах
+  </Button>
+</Animated.View>
+
+              {/* Success message */}
               {successMessage ? (
-                <Text style={{ color: "green", marginTop: 10, textAlign: "center" }}>
+                <AnimatedText style={[styles.successMessage, { color: isNightMode ? "#90ee90" : "green" }]}>
                   {successMessage}
-                </Text>
+                </AnimatedText>
               ) : null}
             </Surface>
-          </Animated.View>
-        </ScrollView>
+          </ScrollView>
 
-        {/* Night mode товчийг баруун доод буланд */}
-        <Button
-          mode="contained"
-          onPress={() => setIsNightMode(!isNightMode)}
-          style={{
-            position: "absolute",
-            bottom: 30,
-            right: 20,
-            padding: 5,
-            minWidth: 50,
-            minHeight: 50,
-            zIndex: 999,
-          }}
-        >
-          {isNightMode ? "🌙" : "🌞"}
-        </Button>
+          {/* Theme Toggle */}
+          <TouchableOpacity
+            onPress={() => setIsNightMode(!isNightMode)}
+            style={styles.toggleButton}
+          >
+            <AnimatedText style={styles.toggleText}>
+              {isNightMode ? "🌙" : "🌞"}
+            </AnimatedText>
+          </TouchableOpacity>
+        </Animated.View>
       </KeyboardAvoidingView>
     </PaperProvider>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    height: '100%',
+    paddingTop: 10,
+    paddingBottom: 20,
+  },
+  scrollView: {
+    flexGrow: 1,
+    padding: 20,
+  },
+  surface: {
+    padding: 20,
+    elevation: 4,
+    backgroundColor: "transparent",
+  },
+  inputContainer: {
+    backgroundColor: "#F5F5F5",
+    borderRadius: 10,
+    marginBottom: 10,
+    paddingHorizontal: 10,
+  },
+  textInput: {
+    backgroundColor: "transparent",
+  },
+  buttonContainer: {
+    marginTop: 10,
+  },
+  image: {
+    width: "100%",
+    height: 200,
+    marginTop: 10,
+    borderRadius: 15,
+    resizeMode: 'cover',
+  },
+  successMessage: {
+    marginTop: 10,
+    textAlign: "center",
+  },
+  toggleButton: {
+    position: "absolute",
+    bottom: 30,
+    right: 20,
+    padding: 10,
+    borderRadius: 25,
+    zIndex: 999,
+  },
+  toggleText: {
+    fontSize: 24,
+  },
+});
