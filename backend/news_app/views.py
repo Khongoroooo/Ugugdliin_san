@@ -2,11 +2,12 @@ from django.shortcuts import render
 from django.http.response import JsonResponse
 from django.http import JsonResponse
 import json
-from sodo_news.settings import connectDB, sendResponse, resultMessages, disconnectDB,sendMail
+from sodo_news.settings import connectDB, sendResponse, resultMessages, disconnectDB, sendMail
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.hashers import make_password, check_password
 from datetime import datetime, timezone
 import uuid
+
 
 @csrf_exempt
 def checkService(request):
@@ -27,6 +28,12 @@ def checkService(request):
         elif data['action'] == 'login':
             res = login(request)
             return JsonResponse(res)
+        elif data['action'] == 'getnews':
+            res = getnews(request)
+            return JsonResponse(res)
+        elif data['action'] == 'getcategory':
+            res = getcategory(request)
+            return JsonResponse(res)
         else:
             res = sendResponse(4003)
             return JsonResponse(res)
@@ -46,7 +53,7 @@ def checkService(request):
 
                 query = f'''SELECT is_verified FROM public.t_amay_news  WHERE nid='{pid[0]}' '''
                 cur.execute(query)
-                data=cur.fetchone()[0]
+                data = cur.fetchone()[0]
 
                 if data is True:
                     res = sendResponse(1002, action='register')
@@ -114,8 +121,10 @@ def login(request):
         res = sendResponse(5001)
         return res
 # login
+
+
 def register(request):
-    
+
     data = json.loads(request.body)
     try:
         email = data['email']
@@ -130,7 +139,7 @@ def register(request):
             dataFromDb = cur.fetchone()[0]
 
             if dataFromDb != 0:
-                return sendResponse(1000,action="register",data=[])
+                return sendResponse(1000, action="register", data=[])
 
             query = f'''INSERT INTO public.t_amay_news(
                             email, password, is_verified, created_date)
@@ -150,8 +159,54 @@ def register(request):
             con.commit()
 
             print(f"##################11 юу хийгээд байгааг ойлгоу байнуу")
-            return sendResponse(200, action='register',data=[])
-        
+            return sendResponse(200, action='register', data=[])
+
     except Exception as e:
         print(f'###############################: {e}')
         return sendResponse(5004)
+
+
+def getnews(request):
+
+    jsons = json.loads(request.body)
+    action = jsons['action']    
+
+    try:
+        with connectDB() as con:
+            cur = con.cursor()
+            query = '''SELECT news_title, n.content, huraangvi, published_at, c.catid 
+                       FROM t_amay_news n
+                       INNER JOIN t_amay_news_category c on n.category_id=c.catid'''
+            cur.execute(query)
+            columns = cur.description
+            rest = [{columns[index][0]: column
+                     for index, column in enumerate(value)} for value in cur.fetchall()]
+
+            resp = sendResponse(action= action, data= rest, resultCode=200)
+            return resp
+
+    except Exception as e:
+        # print(f"############################ {e}")
+        return sendResponse(5000)
+    
+
+def getcategory(request):
+
+    jsons = json.loads(request.body)
+    action = jsons['action']    
+
+    try:
+        with connectDB() as con:
+            cur = con.cursor()
+            query = '''SELECT * FROM t_amay_news_category'''
+            cur.execute(query)
+            columns = cur.description
+            rest = [{columns[index][0]: column
+                     for index, column in enumerate(value)} for value in cur.fetchall()]
+
+            resp = sendResponse(action= action, data= rest, resultCode=200)
+            return resp
+
+    except Exception as e:
+        # print(f"############################ {e}")
+        return sendResponse(5000)

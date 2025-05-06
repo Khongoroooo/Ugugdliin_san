@@ -9,6 +9,7 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
 import { Image } from "react-native";
+import { router } from "expo-router";
 
 export default function RegisterScreen() {
   const navigation = useNavigation();
@@ -106,11 +107,11 @@ export default function RegisterScreen() {
       ) : null}
 
       {/* Login холбоос */}
-      <TouchableOpacity onPress={() => navigation.navigate("Login")}>
+      <TouchableOpacity onPress={() => router.push("/(tabs)/LoginScreen")}>
         <Text style={styles.registerText}>Нэвтрэх</Text>
       </TouchableOpacity>
     </View>
-  );
+  );  
 }
 
 const styles = StyleSheet.create({

@@ -47,6 +47,8 @@ const calculateAverageRating = (ratings) => {
 
 export default function HomeScreen() {
   const [items, setItems] = useState([]);
+  const [cat, setcat] = useState([]);
+
   const [usdRate, setUsdRate] = useState("Loading...");
   const translateX = useRef(new Animated.Value(width)).current;
   const [token, setToken] = useState<string | null>(null);
@@ -59,12 +61,13 @@ export default function HomeScreen() {
     };
     fetchToken();
   }, []);
-  
+
   useEffect(() => {
+    // API-с мэдээлэл авах
     fetch("http://127.0.0.1:8000/user/", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "getnewslist" }),
+      body: JSON.stringify({ action: "getnews" }),
     })
       .then((res) => res.json())
       .then((data) => {
@@ -73,9 +76,32 @@ export default function HomeScreen() {
         }
       })
       .catch((err) => console.log(err));
+
+    // Api-аас төрөл авах
+    fetch("http://127.0.0.1:8000/user/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "getcategory" }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.resultCode == 200) {
+          setcat(data.data);
+          console.log(`cat: ${data.data}`);
+        }
+      })
+      .catch((err) => console.log(err));
+
+    // Валютын ханш авах (API-ийн хэсэг)
+    fetch("https://api.exchangerate-api.com/v4/latest/USD")
+      .then((res) => res.json())
+      .then((data) => {
+        setUsdRate(`USD rate: ${data.rates.MNT}₮`);
+      })
+      .catch((err) => console.log(err));
+
     startScrolling();
   }, []);
-
 
   const startScrolling = () => {
     translateX.setValue(width);
@@ -117,27 +143,18 @@ export default function HomeScreen() {
           />
           <View style={styles.headerButtons}>
             {token != null ? (
-              // Хэрвээ token байгаа бол — Гарах товч
-              <TouchableOpacity
-                onPress={async () => {
-                  await AsyncStorage.removeItem("token");
-                  router.replace("/explore");
-                }}
-                style={styles.headerButton}
-              >
-                <Text style={styles.headerButtonText}>Гарах</Text>
-              </TouchableOpacity>
+              <></>
             ) : (
               <>
                 <TouchableOpacity
-                  onPress={() => router.push("/LoginScreen")}
+                  onPress={() => router.push("/(tabs)/LoginScreen")}
                   style={styles.headerButton}
                 >
                   <Text style={styles.headerButtonText}>Нэвтрэх</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  onPress={() => router.push("/RegisterScreen")}
+                  onPress={() => router.push("/(tabs)/RegisterScreen")}
                   style={styles.headerButton}
                 >
                   <Text style={styles.headerButtonText}>Бүртгүүлэх</Text>
@@ -159,34 +176,38 @@ export default function HomeScreen() {
       </View>
 
       {/* News Cards */}
+      <Text>Улс төр</Text>
       <FlatList
-        data={items}
-        keyExtractor={(item, index) => index.toString()}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ padding: 10 }}
-        renderItem={({ item }) => (
-          <TouchableOpacity style={styles.card}>
-            <Image
-              source={{
-                uri: item.image_url || "https://via.placeholder.com/300x180",
-              }}
-              style={styles.cardImage}
-            />
-            <View style={styles.cardContent}>
-              <Text style={styles.cardTitle}>{item.news_title}</Text>
-              <Text style={styles.cardDescription}>{item.huraangvi}</Text>
-              <StarRating
-                rating={calculateAverageRating(item.ratings || [])}
-                onRatingChange={(rating) => handleRatingChange(item.id, rating)}
-              />
-              <Text style={styles.cardRating}>
-                {calculateAverageRating(item.ratings || []).toFixed(1)}
-              </Text>
-            </View>
-          </TouchableOpacity>
-        )}
+  data={items.filter((item) => item.catid === 2)}
+  keyExtractor={(item, index) => index.toString()}
+  horizontal
+  showsHorizontalScrollIndicator={false}
+  contentContainerStyle={{ padding: 10 }}
+  renderItem={({ item }) => (
+    <TouchableOpacity style={styles.card}>
+      <Image
+        source={{
+          uri: item.image_url || "https://via.placeholder.com/300x180",
+        }}
+        style={styles.cardImage}
       />
+      <View style={styles.cardContent}>
+        {/* Зөв утгуудыг Text дотор ашиглаж байна */}
+        <Text style={styles.cardTitle}>{item.news_title}</Text>
+        <Text style={styles.cardDescription}>{item.huraangvi}</Text>
+
+        <StarRating
+          rating={calculateAverageRating(item.ratings || [])}
+          onRatingChange={(rating) => handleRatingChange(item.id, rating)}
+        />
+        <Text style={styles.cardRating}>
+          {calculateAverageRating(item.ratings || []).toFixed(1)}
+        </Text>
+      </View>
+    </TouchableOpacity>
+  )}
+/>
+
     </ScrollView>
   );
 }
@@ -208,12 +229,18 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     marginTop: 10,
+    flexWrap: "wrap",
+    gap: 10,
   },
   headerButton: {
     backgroundColor: "#ffffff30",
     paddingVertical: 6,
     paddingHorizontal: 14,
     borderRadius: 20,
+    width: 120,
+    height: 40,
+    justifyContent: "center",
+    alignItems: "center",
   },
   headerButtonText: { color: "#fff", fontWeight: "bold" },
   adContainer: {
