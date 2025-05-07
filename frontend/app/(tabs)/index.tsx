@@ -195,6 +195,8 @@ export default function HomeScreen() {
         {/* Зөв утгуудыг Text дотор ашиглаж байна */}
         <Text style={styles.cardTitle}>{item.news_title}</Text>
         <Text style={styles.cardDescription}>{item.huraangvi}</Text>
+        <Text style={styles.cardDescription}>{item.image_url}</Text>
+
 
         <StarRating
           rating={calculateAverageRating(item.ratings || [])}

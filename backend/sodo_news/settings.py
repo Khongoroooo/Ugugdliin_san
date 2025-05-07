@@ -4,6 +4,7 @@ from pathlib import Path
 import psycopg2
 from datetime import datetime
 
+
 from email.mime.text import MIMEText
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -116,6 +117,10 @@ STATIC_URL = 'static/'
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
+
+# MEDIA_URL = '/media/'
+# MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
@@ -135,6 +140,7 @@ resultMessages = {
     1001: 'Token-ний хугацаа дууссан эсвэл хүчингүй token байна',
     1002: 'Баталгаажсан хэрэглэгч байна',
     1004: 'Бүртгэлгүй хэрэглэгч байна',
+    500: 'id butsaaj chadsangvi',
 
     200: 'Success',
     204: 'No Content',
@@ -178,8 +184,8 @@ def sendMail(recipient, subj, bodyHtml):
 
 def connectDB():
     conn = psycopg2.connect(
-        host="192.168.0.15",
-        #host="59.153.86.254",
+        #host="192.168.0.15",
+        host="59.153.86.254",
         dbname="dbissw",
         user="userISSW",
         password="passissw",

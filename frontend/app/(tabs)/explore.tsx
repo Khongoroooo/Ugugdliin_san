@@ -100,7 +100,7 @@ export default function HomeScreen() {
   };
 
   const handleSubmit = () => {
-    if (!title || !content || !huraangvi || !categoryName) {
+    if (!title || !content || !huraangvi ) {
       alert("Бүх талбарыг бөглөнө үү.");
       return;
     }

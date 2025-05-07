@@ -28,6 +28,9 @@ def checkService(request):
         elif data['action'] == 'login':
             res = login(request)
             return JsonResponse(res)
+        elif data['action'] == 'add_news':
+            res = add_news(request)
+            return JsonResponse(res)
         elif data['action'] == 'getnews':
             res = getnews(request)
             return JsonResponse(res)
@@ -67,6 +70,7 @@ def checkService(request):
                 con.commit()
                 res = sendResponse(200, action='register')
                 return JsonResponse(res)
+            
             except Exception as e:
                 res = sendResponse(5004)
                 return JsonResponse(res)
@@ -174,9 +178,10 @@ def getnews(request):
     try:
         with connectDB() as con:
             cur = con.cursor()
-            query = '''SELECT news_title, n.content, huraangvi, published_at, c.catid 
+            query = '''SELECT n.nid, news_title, n.content, huraangvi, published_at, c.catid 
                        FROM t_amay_news n
-                       INNER JOIN t_amay_news_category c on n.category_id=c.catid'''
+                       LEFT JOIN t_amay_news_category c on n.category_id=c.catid
+                       ORDER BY n.nid ASC'''
             cur.execute(query)
             columns = cur.description
             rest = [{columns[index][0]: column
@@ -210,3 +215,36 @@ def getcategory(request):
     except Exception as e:
         # print(f"############################ {e}")
         return sendResponse(5000)
+    
+def add_news(request):
+    jsons = json.loads(request.body)
+    action = jsons.get("action", "add_news")
+   
+
+    try:
+        news_title = jsons['news_title']
+        content = jsons['content']
+        huraangvi = jsons['huraangvi']
+        image_url = jsons['image_url']
+    except Exception as e:
+        return sendResponse(4004, action, [])
+        
+    try:
+        with connectDB() as con:
+            cur = con.cursor()
+            query = '''INSERT INTO t_amay_news  (news_title, content, huraangvi, published_at, image_url)
+                        VALUES(%s, %s, %s, NOW(), %s) RETURNING nid   '''
+            cur.execute(query,(news_title,content,huraangvi,image_url))
+            result = cur.fetchone() 
+            con.commit()
+            if result:
+                return sendResponse(200, action,{'id': result[0]})
+                print(f"############################ ")
+            else:
+                return sendResponse(500, action,[])
+    except Exception as e:
+        print(f"Error adding news: {e}")
+        return sendResponse (5000, action, str(e))
+
+    
+
