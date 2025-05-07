@@ -11,6 +11,7 @@ import {
   Dimensions,
   Easing,
   TextInput,
+  ImageBackground,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
@@ -30,9 +31,7 @@ const StarRating = ({ rating, onRatingChange }) => {
     <View style={styles.starContainer}>
       {stars.map((star) => (
         <TouchableOpacity key={star} onPress={() => onRatingChange(star)}>
-          <Text style={star <= rating ? styles.filledStar : styles.emptyStar}>
-            ★
-          </Text>
+          <Text style={star <= rating ? styles.filledStar : styles.emptyStar}>★</Text>
         </TouchableOpacity>
       ))}
     </View>
@@ -48,7 +47,6 @@ const calculateAverageRating = (ratings) => {
 export default function HomeScreen() {
   const [items, setItems] = useState([]);
   const [cat, setcat] = useState([]);
-
   const [usdRate, setUsdRate] = useState("Loading...");
   const translateX = useRef(new Animated.Value(width)).current;
   const [token, setToken] = useState<string | null>(null);
@@ -63,7 +61,6 @@ export default function HomeScreen() {
   }, []);
 
   useEffect(() => {
-    // API-с мэдээлэл авах
     fetch("http://127.0.0.1:8000/user/", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -77,7 +74,6 @@ export default function HomeScreen() {
       })
       .catch((err) => console.log(err));
 
-    // Api-аас төрөл авах
     fetch("http://127.0.0.1:8000/user/", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -92,7 +88,6 @@ export default function HomeScreen() {
       })
       .catch((err) => console.log(err));
 
-    // Валютын ханш авах (API-ийн хэсэг)
     fetch("https://api.exchangerate-api.com/v4/latest/USD")
       .then((res) => res.json())
       .then((data) => {
@@ -118,9 +113,7 @@ export default function HomeScreen() {
   const handleRatingChange = (itemId, newRating) => {
     const updatedItems = items.map((item) => {
       if (item.id === itemId) {
-        const updatedRatings = item.ratings
-          ? [...item.ratings, newRating]
-          : [newRating];
+        const updatedRatings = item.ratings ? [...item.ratings, newRating] : [newRating];
         return { ...item, ratings: updatedRatings };
       }
       return item;
@@ -129,52 +122,47 @@ export default function HomeScreen() {
   };
 
   return (
-    <ScrollView style={styles.container}>
-      {/* Header Section */}
+    <ImageBackground
+      source={{ uri: "https://i.pinimg.com/736x/e5/50/f4/e550f43df6534b6132b77c8e9f0ca585.jpg" }}
+      style={{ flex: 1 }}
+      resizeMode="cover"
+    >
+      <ScrollView style={styles.container}>
       <LinearGradient colors={["#9b59b6", "#e056fd"]} style={styles.header}>
-        <Text style={styles.headerText}>SodoNews</Text>
-        <Text style={styles.infoText}>{usdRate}</Text>
-
-        <View style={styles.searchContainer}>
-          <TextInput
-            style={styles.searchBar}
-            placeholder="Хайх"
-            placeholderTextColor="#999"
-          />
-          <View style={styles.headerButtons}>
-            {token != null ? (
-              <></>
-            ) : (
-              <>
-                <TouchableOpacity
-                  onPress={() => router.push("/(tabs)/LoginScreen")}
-                  style={styles.headerButton}
-                >
-                  <Text style={styles.headerButtonText}>Нэвтрэх</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  onPress={() => router.push("/(tabs)/RegisterScreen")}
-                  style={styles.headerButton}
-                >
-                  <Text style={styles.headerButtonText}>Бүртгүүлэх</Text>
-                </TouchableOpacity>
-              </>
-            )}
-          </View>
-        </View>
-      </LinearGradient>
-
-      {/* Scrolling Ad */}
-      <View style={styles.adContainer}>
-        <Animated.View
-          style={[styles.adContent, { transform: [{ translateX }] }]}
-        >
-          <Image source={{ uri: ad.image }} style={styles.adImage} />
-          <Text style={styles.adText}>{ad.text}</Text>
-        </Animated.View>
+  <ImageBackground
+    source={{ uri: "https://i.pinimg.com/736x/56/8a/1e/568a1e3f59ef753f658dfd7f6194c798.jpg" }}
+    style={StyleSheet.absoluteFill}
+    imageStyle={{ opacity: 0 }}
+  />
+  <View style={styles.headerLeftContainer} />
+  <View style={styles.headerTextContainer}>
+    <Text style={styles.headerText}>SodoNews</Text>
+    <Text style={styles.infoText}>{usdRate}</Text>
+  </View>
+  <View style={styles.headerRightContainer}>
+    {token == null && (
+      <View style={styles.headerButtons}>
+        <TouchableOpacity onPress={() => router.push("/(tabs)/LoginScreen")} style={styles.headerButton}>
+          <Text style={styles.headerButtonText}>Нэвтрэх</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => router.push("/(tabs)/RegisterScreen")} style={styles.headerButton}>
+          <Text style={styles.headerButtonText}>Бүртгүүлэх</Text>
+        </TouchableOpacity>
       </View>
+    )}
+  </View>
+</LinearGradient>
 
+        <View style={styles.adContainer}>
+          <Animated.View style={[styles.adContent, { transform: [{ translateX }] }]}>
+            <Image source={{ uri: ad.image }} style={styles.adImage} />
+            <Text style={styles.adText}>{ad.text}</Text>
+          </Animated.View>
+        </View>
+
+        <Text style={styles.sectionTitle}> Улс төрийн мэдээ</Text>
+
+<<<<<<< HEAD
       {/* News Cards */}
       <Text>Улс төр</Text>
       <FlatList
@@ -197,95 +185,142 @@ export default function HomeScreen() {
         <Text style={styles.cardDescription}>{item.huraangvi}</Text>
         <Text style={styles.cardDescription}>{item.image_url}</Text>
 
+=======
+        <FlatList
+          data={items.filter((item) => item.catid === 2)}
+          keyExtractor={(item, index) => index.toString()}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ paddingHorizontal: 10, paddingVertical: 10 }}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={styles.card}
+              onPress={() => router.push(`/NewsDetailScreen?id=${item.id}`)}
+            >
+              <ImageBackground
+                source={{ uri: item.image_url || "https://via.placeholder.com/300x180" }}
+                style={styles.cardImage}
+                imageStyle={{ borderTopLeftRadius: 16, borderTopRightRadius: 16 }}
+              >
+                <LinearGradient colors={["rgba(0,0,0,0.6)", "transparent"]} style={styles.imageOverlay} />
+              </ImageBackground>
+              <View style={styles.cardContent}>
+                <Text style={styles.cardTitle} numberOfLines={1}>{item.news_title}</Text>
+                <Text style={styles.cardDescription} numberOfLines={2}>{item.huraangvi}</Text>
+>>>>>>> 9acec4821c69412d4c7b5a3bf51a76ec47dbbec3
 
-        <StarRating
-          rating={calculateAverageRating(item.ratings || [])}
-          onRatingChange={(rating) => handleRatingChange(item.id, rating)}
+                <StarRating
+                  rating={calculateAverageRating(item.ratings || [])}
+                  onRatingChange={(rating) => handleRatingChange(item.id, rating)}
+                />
+                <Text style={styles.cardRating}>{calculateAverageRating(item.ratings || []).toFixed(1)}</Text>
+              </View>
+            </TouchableOpacity>
+          )}
         />
-        <Text style={styles.cardRating}>
-          {calculateAverageRating(item.ratings || []).toFixed(1)}
-        </Text>
-      </View>
-    </TouchableOpacity>
-  )}
-/>
-
-    </ScrollView>
+      </ScrollView>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff" },
-  header: { padding: 20, paddingTop: 40 },
-  headerText: { color: "#fff", fontSize: 28, fontWeight: "bold" },
-  infoText: { color: "#f0f0f0", marginTop: 5 },
-  searchContainer: { marginTop: 15 },
-  searchBar: {
-    backgroundColor: "#fff",
-    paddingHorizontal: 15,
-    paddingVertical: 8,
-    borderRadius: 20,
-    fontSize: 14,
+  container: {
+    flex: 1,
+    backgroundColor: "transparent",
   },
-  headerButtons: {
+  header: {
+    padding: 20,
+    paddingTop: 50,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+    elevation: 10,
     flexDirection: "row",
+    alignItems: "center",
     justifyContent: "space-between",
-    marginTop: 10,
-    flexWrap: "wrap",
-    gap: 10,
   },
+  headerLeftContainer: { flexDirection: "row", alignItems: "center" },
+  headerTextContainer: { flex: 1, alignItems: "center" },
+  headerText: { color: "#fff", fontSize: 32, fontWeight: "bold", letterSpacing: 1 },
+  infoText: { color: "#e0e0e0", marginTop: 4, fontSize: 13 },
+  headerRightContainer: { flexDirection: "row", alignItems: "center", justifyContent: "flex-end" },
+  headerButtons: { flexDirection: "row", gap: 8 },
   headerButton: {
-    backgroundColor: "#ffffff30",
+    backgroundColor: "#ffffff33",
     paddingVertical: 6,
     paddingHorizontal: 14,
     borderRadius: 20,
-    width: 120,
-    height: 40,
+    minWidth: 100,
+    height: 36,
     justifyContent: "center",
     alignItems: "center",
   },
-  headerButtonText: { color: "#fff", fontWeight: "bold" },
+  headerButtonText: { color: "#fff", fontWeight: "bold", fontSize: 14 },
   adContainer: {
-    height: 70,
-    overflow: "hidden",
-    backgroundColor: "#fff",
+    height: 60,
+    backgroundColor: "transparent",
     justifyContent: "center",
+    marginTop: 10,
+    overflow: "hidden",
+    paddingHorizontal: 10,
   },
-  adContent: { flexDirection: "row", alignItems: "center" },
-  adImage: { width: 50, height: 50, marginHorizontal: 10, borderRadius: 10 },
-  adText: { fontSize: 16, fontWeight: "bold", color: "#000" },
+  adContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(255, 255, 255, 0.4)",
+    borderRadius: 14,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  adImage: {
+    width: 45,
+    height: 45,
+    marginRight: 10,
+    borderRadius: 8,
+  },
+  adText: {
+    fontSize: 15,
+    fontWeight: "bold",
+    color: "#222",
+    textShadowColor: "rgba(0, 0, 0, 0.2)",
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 1,
+  },
   card: {
-    backgroundColor: "#fdfbff",
+    backgroundColor: "#fff",
     borderRadius: 16,
-    marginRight: 15,
+    marginRight: 16,
     width: 260,
-    elevation: 4,
+    elevation: 6,
     shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowOffset: { width: 0, height: 3 },
     shadowRadius: 6,
   },
   cardImage: {
     width: "100%",
-    height: 160,
+    height: 150,
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
   },
   cardContent: { padding: 12 },
-  cardTitle: { fontSize: 16, fontWeight: "600", color: "#2c2c2c" },
-  cardDescription: {
-    fontSize: 13,
-    color: "#666",
-    marginTop: 6,
-    lineHeight: 18,
-  },
-  cardRating: {
-    fontSize: 13,
+  cardTitle: { fontSize: 17, fontWeight: "700", color: "#222", marginBottom: 4 },
+  cardDescription: { fontSize: 13, color: "#777", lineHeight: 18 },
+  cardRating: { fontSize: 13, fontWeight: "bold", color: "#f1c40f", marginTop: 6 },
+  starContainer: { flexDirection: "row", marginTop: 6, gap: 4 },
+  filledStar: { color: "#f1c40f", fontSize: 18 },
+  emptyStar: { color: "#ccc", fontSize: 18 },
+  sectionTitle: {
+    fontSize: 22,
     fontWeight: "bold",
-    color: "#FFD700",
-    marginTop: 8,
+    color: "#fff",
+    marginLeft: 14,
+    marginTop: 20,
+    marginBottom: 8,
+    textDecorationLine: "none",
   },
-  starContainer: { flexDirection: "row", marginTop: 5, gap: 4 },
-  filledStar: { color: "#FFD700", fontSize: 18 },
-  emptyStar: { color: "#D3D3D3", fontSize: 18 },
+  imageOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+  },
 });
