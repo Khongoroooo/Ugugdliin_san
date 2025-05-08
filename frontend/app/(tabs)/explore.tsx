@@ -207,10 +207,11 @@ export default function HomeScreen() {
                         { backgroundColor: inputBg },
                       ]}
                     >
-                      <Text> {categoryName.catname}</Text>
+                      
                       <AnimatedTextInput
-                        label="Төрөл сонгох"
-                        value={categoryName.cat_id}
+                        
+                        value={categoryName.catname || "Төрөл сонгох"}
+                      
                         mode="flat"
                         editable={false}
                         pointerEvents="none"
@@ -218,6 +219,7 @@ export default function HomeScreen() {
                         underlineColor="transparent"
                       />
                     </Animated.View>
+                    
                   </TouchableOpacity>
                 }
               >
@@ -227,7 +229,7 @@ export default function HomeScreen() {
                     onPress={() => {
                       setCategoryName({
                         catid: cat.cat_id,
-                        catname: cat.cat_name,
+                        catname: cat.category_name,
                       });
                       setMenuVisible(false);
                     }}
