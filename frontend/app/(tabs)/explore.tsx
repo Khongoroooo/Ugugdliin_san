@@ -30,7 +30,7 @@ export default function HomeScreen() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [huraangvi, setHuraangvi] = useState("");
-  const [categoryName, setCategoryName] = useState("");
+  const [categoryName, setCategoryName] = useState({});
   const [catArray, setCatArray] = useState<string[]>([]);
   const [menuVisible, setMenuVisible] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
@@ -38,6 +38,7 @@ export default function HomeScreen() {
   const [isNightMode, setIsNightMode] = useState(false);
 
   const animation = useRef(new Animated.Value(0)).current;
+
 
   useEffect(() => {
     Animated.timing(animation, {
@@ -68,25 +69,29 @@ export default function HomeScreen() {
   });
 
   const theme = isNightMode
-    ? { ...MD3DarkTheme, colors: { ...MD3DarkTheme.colors, background: "#2C2C2C" } }
-    : { ...DefaultTheme, colors: { ...DefaultTheme.colors, background: "#FFFFFF" } };
+    ? {
+        ...MD3DarkTheme,
+        colors: { ...MD3DarkTheme.colors, background: "#2C2C2C" },
+      }
+    : {
+        ...DefaultTheme,
+        colors: { ...DefaultTheme.colors, background: "#FFFFFF" },
+      };
 
   useEffect(() => {
-  fetch("http://127.0.0.1:8000/user/", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ action: "getnewslist" }),
-  })
-    .then((res) => res.json())
-    .then((data) => {
-      const filtered = data.data
-        .map((e: any) => e.category_name)
-        .filter((name: any): name is string => typeof name === "string");
-      setCatArray([...new Set(filtered)]);
+    fetch("http://127.0.0.1:8000/user/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "getcategory" }),
     })
-    .catch((err) => console.error("Fetch error:", err));
-}, []);
-
+      .then((res) => res.json())
+      .then((data) => {
+        // const listedCat = data.data.map((e) => e.category_id).filter(Boolean);
+        // setCatArray([...new Set(listedCat)]);
+        setCatArray(data.data);
+      })
+      .catch((err) => console.error("Fetch error:", err));
+  }, []);
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -98,39 +103,40 @@ export default function HomeScreen() {
       setImageUri(result.assets[0].uri);
     }
   };
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
 
-  const handleSubmit = () => {
-    if (!title || !content || !huraangvi || !categoryName) {
-      alert("Бүх талбарыг бөглөнө үү.");
-      return;
-    }
+    const requestBody = {
+      action: "add_news",
+      news_title: title,
+      content: content,
+      huraangvi: huraangvi,
+      category_id: categoryName.catid,
+      image_url: imageUri ?? "https://example.com/default.jpg",
+    };
 
-    fetch("http://127.0.0.1:8000/user/", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        action: "add_news",
-        news_title: title,
-        content: content,
-        huraangvi: huraangvi,
-        categoryName: categoryName,
-        image_url: imageUri ?? "https://example.com/default.jpg",
-      }),
-    })
-      .then((res) => res.json())
-      .then(() => {
-        setSuccessMessage("Амжилттай бүртгэгдлээ!");
-        setTitle("");
-        setContent("");
-        setHuraangvi("");
-        setCategoryName("");
-        setImageUri(null);
-        setTimeout(() => setSuccessMessage(""), 3000);
-      })
-      .catch((error) => {
-        console.error(error);
-        alert("Мэдээ илгээхэд алдаа гарлаа.");
+    console.log(`###FORM: ${JSON.stringify( requestBody)}`)
+    try {
+      const response = await fetch("http://127.0.0.1:8000/user/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestBody),
       });
+
+      const data = await response.json();
+      console.log(JSON.stringify(data));
+      setSuccessMessage("Амжилттай бүртгэгдлээ!");
+      setTitle("");
+      setContent("");
+      setHuraangvi("");
+      setCategoryName("");
+      setImageUri(null);
+
+      setTimeout(() => setSuccessMessage(""), 3000);
+    } catch (error) {
+      console.error("Submission error:", error);
+      alert("Мэдээ илгээхэд алдаа гарлаа.");
+    }
   };
 
   return (
@@ -143,7 +149,9 @@ export default function HomeScreen() {
           <ScrollView contentContainerStyle={styles.scrollView}>
             <Surface style={styles.surface}>
               {/* Title */}
-              <Animated.View style={[styles.inputContainer, { backgroundColor: inputBg }]}>
+              <Animated.View
+                style={[styles.inputContainer, { backgroundColor: inputBg }]}
+              >
                 <AnimatedTextInput
                   label="Гарчиг"
                   mode="flat"
@@ -156,7 +164,9 @@ export default function HomeScreen() {
               </Animated.View>
 
               {/* Summary */}
-              <Animated.View style={[styles.inputContainer, { backgroundColor: inputBg }]}>
+              <Animated.View
+                style={[styles.inputContainer, { backgroundColor: inputBg }]}
+              >
                 <AnimatedTextInput
                   label="Хураангүй"
                   mode="flat"
@@ -169,7 +179,9 @@ export default function HomeScreen() {
               </Animated.View>
 
               {/* Content */}
-              <Animated.View style={[styles.inputContainer, { backgroundColor: inputBg }]}>
+              <Animated.View
+                style={[styles.inputContainer, { backgroundColor: inputBg }]}
+              >
                 <AnimatedTextInput
                   label="Агуулга"
                   mode="flat"
@@ -189,10 +201,16 @@ export default function HomeScreen() {
                 onDismiss={() => setMenuVisible(false)}
                 anchor={
                   <TouchableOpacity onPress={() => setMenuVisible(true)}>
-                    <Animated.View style={[styles.inputContainer, { backgroundColor: inputBg }]}>
+                    <Animated.View
+                      style={[
+                        styles.inputContainer,
+                        { backgroundColor: inputBg },
+                      ]}
+                    >
+                      <Text> {categoryName.catname}</Text>
                       <AnimatedTextInput
                         label="Төрөл сонгох"
-                        value={categoryName}
+                        value={categoryName.cat_id}
                         mode="flat"
                         editable={false}
                         pointerEvents="none"
@@ -203,14 +221,17 @@ export default function HomeScreen() {
                   </TouchableOpacity>
                 }
               >
-                {catArray.map((cat, index) => (
+                {catArray.map((cat) => (
                   <Menu.Item
-                    key={index}
+                    key={cat.cat_id}
                     onPress={() => {
-                      setCategoryName(cat);
+                      setCategoryName({
+                        catid: cat.cat_id,
+                        catname: cat.cat_name,
+                      });
                       setMenuVisible(false);
                     }}
-                    title={cat}
+                    title={cat.category_name}
                   />
                 ))}
               </Menu>
@@ -228,15 +249,29 @@ export default function HomeScreen() {
               )}
 
               {/* Submit Button */}
-              <Animated.View style={[styles.buttonContainer, { backgroundColor: buttonColor, borderRadius: 8 }]}>
-  <Button mode="contained" onPress={handleSubmit} textColor="#fff">
-    Хадгалах
-  </Button>
-</Animated.View>
+              <Animated.View
+                style={[
+                  styles.buttonContainer,
+                  { backgroundColor: buttonColor, borderRadius: 8 },
+                ]}
+              >
+                <Button
+                  mode="contained"
+                  onPress={handleSubmit}
+                  textColor="#fff"
+                >
+                  Хадгалах
+                </Button>
+              </Animated.View>
 
               {/* Success message */}
               {successMessage ? (
-                <AnimatedText style={[styles.successMessage, { color: isNightMode ? "#90ee90" : "green" }]}>
+                <AnimatedText
+                  style={[
+                    styles.successMessage,
+                    { color: isNightMode ? "#90ee90" : "green" },
+                  ]}
+                >
                   {successMessage}
                 </AnimatedText>
               ) : null}
@@ -261,7 +296,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    height: '100%',
+    height: "100%",
     paddingTop: 10,
     paddingBottom: 20,
   },
@@ -291,7 +326,7 @@ const styles = StyleSheet.create({
     height: 200,
     marginTop: 10,
     borderRadius: 15,
-    resizeMode: 'cover',
+    resizeMode: "cover",
   },
   successMessage: {
     marginTop: 10,

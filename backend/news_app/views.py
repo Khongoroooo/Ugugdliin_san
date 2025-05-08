@@ -178,10 +178,11 @@ def getnews(request):
     try:
         with connectDB() as con:
             cur = con.cursor()
-            query = '''SELECT n.nid, news_title, n.content, huraangvi, published_at, c.catid 
-                       FROM t_amay_news n
-                       LEFT JOIN t_amay_news_category c on n.category_id=c.catid
-                       ORDER BY n.nid ASC'''
+            query = '''SELECT n.nid, news_title, n.content, huraangvi, published_at, c.category_id, c.catname 
+           FROM t_amay_news n
+           LEFT JOIN t_amay_news_category c on n.category_id=c.category_id
+           ORDER BY n.nid ASC'''
+
             cur.execute(query)
             columns = cur.description
             rest = [{columns[index][0]: column
@@ -226,20 +227,22 @@ def add_news(request):
         content = jsons['content']
         huraangvi = jsons['huraangvi']
         image_url = jsons['image_url']
+        category_id = jsons['category_id']
+
     except Exception as e:
         return sendResponse(4004, action, [])
         
     try:
         with connectDB() as con:
             cur = con.cursor()
-            query = '''INSERT INTO t_amay_news  (news_title, content, huraangvi, published_at, image_url)
-                        VALUES(%s, %s, %s, NOW(), %s) RETURNING nid   '''
-            cur.execute(query,(news_title,content,huraangvi,image_url))
+            query = '''INSERT INTO t_amay_news  (news_title, content, huraangvi, published_at, image_url, category_id)
+                        VALUES(%s, %s, %s, NOW(), %s,%s) RETURNING nid   '''
+            cur.execute(query,(news_title,content,huraangvi,image_url,category_id))
             result = cur.fetchone() 
             con.commit()
             if result:
                 return sendResponse(200, action,{'id': result[0]})
-                print(f"############################ ")
+                
             else:
                 return sendResponse(500, action,[])
     except Exception as e:
