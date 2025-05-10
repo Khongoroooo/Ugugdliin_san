@@ -55,11 +55,12 @@ export default function HomeScreen() {
     const fetchToken = async () => {
       const t = await AsyncStorage.getItem("token");
       setToken(t);
-      console.log(`############ token: ${t}`);
     };
     fetchToken();
   }, []);
 
+
+  console.log(items)
   useEffect(() => {
     fetch("http://127.0.0.1:8000/user/", {
       method: "POST",
