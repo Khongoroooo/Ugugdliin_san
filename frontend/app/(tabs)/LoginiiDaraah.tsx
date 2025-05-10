@@ -52,38 +52,64 @@ const calculateAverageRating = (ratings) => {
 
 export default function HomeScreen() {
   const [items, setItems] = useState([]);
-  const [cat, setcat] = useState([]);
   const [usdRate, setUsdRate] = useState("Loading...");
   const [token, setToken] = useState<string | null>(null);
   const translateX = useRef(new Animated.Value(width)).current;
 
-  const panelAnim = useRef(new Animated.Value(-width * 0.3)).current;
-  const [isPanelVisible, setIsPanelVisible] = useState(false);
+  // Хоёр panel-ийн төлөв
+  const searchPanelAnim = useRef(new Animated.Value(-width)).current;
+  const profilePanelAnim = useRef(new Animated.Value(width)).current;
+  const [isSearchVisible, setIsSearchVisible] = useState(false);
+  const [isProfileVisible, setIsProfileVisible] = useState(false);
 
-  const togglePanel = () => {
-    if (isPanelVisible) {
-      Animated.timing(panelAnim, {
-        toValue: -width * 0.3,
+  const toggleSearchPanel = () => {
+    if (isSearchVisible) {
+      Animated.timing(searchPanelAnim, {
+        toValue: -width,
         duration: 300,
-        useNativeDriver: false,
-      }).start(() => setIsPanelVisible(false));
+        useNativeDriver: true,
+      }).start(() => setIsSearchVisible(false));
     } else {
-      setIsPanelVisible(true);
-      Animated.timing(panelAnim, {
+      setIsSearchVisible(true);
+      Animated.timing(searchPanelAnim, {
         toValue: 0,
         duration: 300,
-        useNativeDriver: false,
+        useNativeDriver: true,
       }).start();
     }
   };
 
-  const closePanel = () => {
-    if (isPanelVisible) {
-      Animated.timing(panelAnim, {
-        toValue: -width * 0.3,
+  const toggleProfilePanel = () => {
+    if (isProfileVisible) {
+      Animated.timing(profilePanelAnim, {
+        toValue: width,
         duration: 300,
-        useNativeDriver: false,
-      }).start(() => setIsPanelVisible(false));
+        useNativeDriver: true,
+      }).start(() => setIsProfileVisible(false));
+    } else {
+      setIsProfileVisible(true);
+      Animated.timing(profilePanelAnim, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    }
+  };
+
+  const closeAllPanels = () => {
+    if (isSearchVisible) {
+      Animated.timing(searchPanelAnim, {
+        toValue: -width,
+        duration: 300,
+        useNativeDriver: true,
+      }).start(() => setIsSearchVisible(false));
+    }
+    if (isProfileVisible) {
+      Animated.timing(profilePanelAnim, {
+        toValue: width,
+        duration: 300,
+        useNativeDriver: true,
+      }).start(() => setIsProfileVisible(false));
     }
   };
 
@@ -101,15 +127,6 @@ export default function HomeScreen() {
     })
       .then((res) => res.json())
       .then((data) => data.resultCode === 200 && setItems(data.data))
-      .catch(console.log);
-
-    fetch("http://127.0.0.1:8000/user/", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "getcategory" }),
-    })
-      .then((res) => res.json())
-      .then((data) => data.resultCode === 200 && setcat(data.data))
       .catch(console.log);
 
     fetch("https://api.exchangerate-api.com/v4/latest/USD")
@@ -155,46 +172,102 @@ export default function HomeScreen() {
       style={{ flex: 1 }}
       resizeMode="cover"
     >
-      {isPanelVisible && (
-        <TouchableWithoutFeedback onPress={closePanel}>
+      {(isSearchVisible || isProfileVisible) && (
+        <TouchableWithoutFeedback onPress={closeAllPanels}>
           <View style={styles.overlay} />
         </TouchableWithoutFeedback>
       )}
 
-      <Animated.View style={[styles.sidePanel, { left: panelAnim }]}>
+      {/* 🔍 Search Panel */}
+      <Animated.View
+        style={[
+          styles.sidePanel,
+          { transform: [{ translateX: searchPanelAnim }] },
+        ]}
+      >
         <ImageBackground
           source={{
             uri: "https://i.pinimg.com/736x/dd/d9/c6/ddd9c66350a75ebab6a587c09592d4e4.jpg",
           }}
           style={styles.sidePanelBackground}
-          imageStyle={{ borderRadius: 0 }}
-          blurRadius={0}
         >
           <Text style={styles.searchHeader}>🔍 Хайлт</Text>
           <TextInput placeholder="Мэдээ хайх..." style={styles.searchInput} />
-          <TouchableOpacity onPress={closePanel} style={styles.closeButton}>
+          <TouchableOpacity onPress={closeAllPanels} style={styles.closeButton}>
             <Ionicons name="close" size={24} color="black" />
           </TouchableOpacity>
         </ImageBackground>
       </Animated.View>
 
+      {/* 👤 Profile Panel */}
+<Animated.View
+  style={[
+    styles.sidePanel,
+    {
+      right: 0,
+      position: "absolute",
+      transform: [{ translateX: profilePanelAnim }],
+    },
+  ]}
+>
+  <ImageBackground
+    source={{
+      uri: "https://i.pinimg.com/736x/56/4a/f1/564af10f06689e733b685c3ee0192f52.jpg",
+    }}
+    style={styles.sidePanelBackground}
+    imageStyle={{ borderTopLeftRadius: 20, borderBottomLeftRadius: 20 }}
+  >
+    <TouchableOpacity onPress={closeAllPanels} style={styles.closeButton}>
+      <Ionicons name="close" size={26} color="black" />
+    </TouchableOpacity>
+
+    <View style={styles.profileContainer}>
+      <View style={styles.profileCard}>
+        <Image
+          source={{
+            uri: "https://i.pinimg.com/736x/91/29/20/9129206728f2d87fba809749099803c7.jpg",
+          }}
+          style={styles.avatar}
+        />
+        <Text style={styles.profileName}>Нэр: Rose</Text>
+        <Text style={styles.profileEmail}>
+          Email: amay_iin_ireeduin_ehner@gmail.com
+        </Text>
+
+        <TouchableOpacity
+          onPress={() => {
+            AsyncStorage.removeItem("token");
+            closeAllPanels();
+            router.replace("/login");
+          }}
+        >
+          <LinearGradient
+            colors={["#9b59b6", "#e056fd"]}
+            style={styles.logoutButton}
+          >
+            <Text style={styles.logoutText}>Гарах</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+      </View>
+    </View>
+  </ImageBackground>
+</Animated.View>
+
+
+
       <ScrollView style={styles.container}>
         <LinearGradient colors={["#9b59b6", "#e056fd"]} style={styles.header}>
-          <View style={styles.leftControls}>
-            <TouchableOpacity
-              onPress={() => router.push("/(tabs)/ProfileScreen")}
-              style={styles.profileIconContainer}
-            >
-              <Ionicons name="person-circle-outline" size={40} color="white" />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={togglePanel} style={styles.searchIcon}>
-              <Ionicons name="search" size={26} color="white" />
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.headerTextContainer}>
+          <View style={styles.headerLeft}>
             <Text style={styles.headerText}>ꌗꂦꀸꂦ ꈤꍟꅏꌗ</Text>
             <Text style={styles.infoText}>{usdRate}</Text>
+          </View>
+          <View style={styles.headerRight}>
+            <TouchableOpacity onPress={toggleProfilePanel} style={styles.iconBtn}>
+              <Ionicons name="person-circle-outline" size={32} color="white" />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={toggleSearchPanel} style={styles.iconBtn}>
+              <Ionicons name="search" size={24} color="white" />
+            </TouchableOpacity>
           </View>
         </LinearGradient>
 
@@ -272,28 +345,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
   },
-  leftControls: {
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 6,
-    marginLeft: 10,
-  },
-  searchIcon: {
-    paddingTop: 6,
-  },
-  profileIconContainer: {},
-  headerTextContainer: { flex: 1, alignItems: "center" },
-  headerText: {
-    color: "#fff",
-    fontSize: 32,
-    fontWeight: "bold",
-    letterSpacing: 1,
-  },
+  headerLeft: { flex: 1 },
+  headerText: { color: "#fff", fontSize: 28, fontWeight: "bold" },
   infoText: { color: "#e0e0e0", marginTop: 4, fontSize: 13 },
+  headerRight: { flexDirection: "row", gap: 10 },
+  iconBtn: { padding: 4 },
   adContainer: {
     height: 60,
-    backgroundColor: "transparent",
     justifyContent: "center",
     marginTop: 10,
     overflow: "hidden",
@@ -312,9 +370,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: "bold",
     color: "#222",
-    textShadowColor: "rgba(0, 0, 0, 0.2)",
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 1,
   },
   sectionTitle: {
     fontSize: 22,
@@ -330,10 +385,6 @@ const styles = StyleSheet.create({
     marginRight: 16,
     width: 260,
     elevation: 6,
-    shadowColor: "#000",
-    shadowOpacity: 0.08,
-    shadowOffset: { width: 0, height: 3 },
-    shadowRadius: 6,
   },
   cardImage: { width: "100%", height: 150 },
   cardContent: { padding: 12 },
@@ -362,10 +413,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 0,
     bottom: 0,
-    left: 0,
-    width: "30%",
-    maxWidth: 450,
-    minWidth: 300,
+    width: "70%",
     backgroundColor: "transparent",
     zIndex: 999,
   },
@@ -397,4 +445,41 @@ const styles = StyleSheet.create({
     top: 8,
     right: 8,
   },
+  profileContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 30,
+  },
+  avatar: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    borderWidth: 2,
+    borderColor: "#fff",
+    marginBottom: 20,
+  },
+  profileName: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#000",
+    marginBottom: 4,
+  },
+  profileEmail: {
+    fontSize: 14,
+    color: "#333",
+    marginBottom: 20,
+  },
+  logoutButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 30,
+    borderRadius: 30,
+    elevation: 4,
+  },
+  logoutText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  
 });
