@@ -1,3 +1,4 @@
+import os
 from django.shortcuts import render
 from django.http.response import JsonResponse
 from django.http import JsonResponse
@@ -12,34 +13,81 @@ import uuid
 @csrf_exempt
 def checkService(request):
     if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-        except Exception as e:
-            res = sendResponse(4001)
-            return JsonResponse(res)
+        if request.content_type.startswith("multipart/form-data"):
+            action = "add_news"
+            try:
+                news_title = request.POST.get('news_title')
+                content = request.POST.get('content')
+                huraangvi = request.POST.get('huraangvi')
+                category_id = request.POST.get('category_id')
 
-        if 'action' not in data:
-            res = sendResponse(4002)
-            return JsonResponse(res)
+                # if not all([news_title, content, huraangvi, category_id]):
+                #     return JsonResponse(sendResponse(4002, action, [{"aldaa":"hooson bn"}]))
+                image_url = None
+                if 'image_url' in request.FILES:
+                    image = request.FILES['image_url']
+                    filename = f"{datetime.now().strftime('%Y%m%d%H%M%S')}_{image.name}"
+                    save_path = os.path.join('media/news', filename)
 
-        if data['action'] == 'register':
-            res = register(request)
-            return JsonResponse(res)
-        elif data['action'] == 'login':
-            res = login(request)
-            return JsonResponse(res)
-        elif data['action'] == 'add_news':
-            res = add_news(request)
-            return JsonResponse(res)
-        elif data['action'] == 'getnews':
-            res = getnews(request)
-            return JsonResponse(res)
-        elif data['action'] == 'getcategory':
-            res = getcategory(request)
-            return JsonResponse(res)
+                    os.makedirs(os.path.dirname(save_path), exist_ok=True)
+
+                    with open(save_path, 'wb+') as dest:
+                        for chunk in image.chunks():
+                            dest.write(chunk)
+
+                    image_url = f"http://127.0.0.1:8000/media/news/{filename}"
+
+            except Exception as e:
+                return JsonResponse(sendResponse(4003, action,  [{"aldaa": e}]))
+
+            try:
+                with connectDB() as con:
+                    cur = con.cursor()
+                    query = '''
+                        INSERT INTO t_amay_news 
+                            (news_title, content, huraangvi, published_at, image_url, category_id)
+                        VALUES (%s, %s, %s, NOW(), %s, %s)
+                        RETURNING nid
+                    '''
+                    cur.execute(query, (news_title, content,
+                                huraangvi, image_url, category_id))
+                    result = cur.fetchone()
+                    con.commit()
+
+                    if result:
+                        return JsonResponse(sendResponse(200, action, []))
+                    else:
+                        return JsonResponse(sendResponse(501, action,  []))
+
+            except Exception as e:
+                print(f"Error adding news: {e}")
+                return JsonResponse(sendResponse(5000, action, [{"Системийн алдаа: {e}", }]))
         else:
-            res = sendResponse(4003)
-            return JsonResponse(res)
+            try:
+                data = json.loads(request.body)
+            except Exception as e:
+                res = sendResponse(4001)
+                return JsonResponse(res)
+
+            if 'action' not in data:
+                res = sendResponse(4002)
+                return JsonResponse(res)
+
+            if data['action'] == 'register':
+                res = register(request)
+                return JsonResponse(res)
+            elif data['action'] == 'login':
+                res = login(request)
+                return JsonResponse(res)
+            elif data['action'] == 'getnews':
+                res = getnews(request)
+                return JsonResponse(res)
+            elif data['action'] == 'getcategory':
+                res = getcategory(request)
+                return JsonResponse(res)
+            else:
+                res = sendResponse(4003)
+                return JsonResponse(res)
 
     elif request.method == 'GET':
         with connectDB() as con:
@@ -70,7 +118,7 @@ def checkService(request):
                 con.commit()
                 res = sendResponse(200, action='register')
                 return JsonResponse(res)
-            
+
             except Exception as e:
                 res = sendResponse(5004)
                 return JsonResponse(res)
@@ -173,7 +221,7 @@ def register(request):
 def getnews(request):
 
     jsons = json.loads(request.body)
-    action = jsons['action']    
+    action = jsons['action']
 
     try:
         with connectDB() as con:
@@ -188,18 +236,18 @@ def getnews(request):
             rest = [{columns[index][0]: column
                      for index, column in enumerate(value)} for value in cur.fetchall()]
 
-            resp = sendResponse(action= action, data= rest, resultCode=200)
+            resp = sendResponse(action=action, data=rest, resultCode=200)
             return resp
 
     except Exception as e:
         # print(f"############################ {e}")
         return sendResponse(5000)
-    
+
 
 def getcategory(request):
 
     jsons = json.loads(request.body)
-    action = jsons['action']    
+    action = jsons['action']
 
     try:
         with connectDB() as con:
@@ -210,44 +258,10 @@ def getcategory(request):
             rest = [{columns[index][0]: column
                      for index, column in enumerate(value)} for value in cur.fetchall()]
 
-            resp = sendResponse(action= action, data= rest, resultCode=200)
+            resp = sendResponse(action=action, data=rest, resultCode=200)
             return resp
 
     except Exception as e:
         # print(f"############################ {e}")
         return sendResponse(5000)
-    
-def add_news(request):
-    jsons = json.loads(request.body)
-    action = jsons.get("action", "add_news")
-   
-
-    try:
-        news_title = jsons['news_title']
-        content = jsons['content']
-        huraangvi = jsons['huraangvi']
-        image_url = jsons['image_url']
-        category_id = jsons['category_id']
-
-    except Exception as e:
-        return sendResponse(4004, action, [])
-        
-    try:
-        with connectDB() as con:
-            cur = con.cursor()
-            query = '''INSERT INTO t_amay_news  (news_title, content, huraangvi, published_at, image_url, category_id)
-                        VALUES(%s, %s, %s, NOW(), %s,%s) RETURNING nid   '''
-            cur.execute(query,(news_title,content,huraangvi,image_url,category_id))
-            result = cur.fetchone() 
-            con.commit()
-            if result:
-                return sendResponse(200, action,{'id': result[0]})
-                
-            else:
-                return sendResponse(500, action,[])
-    except Exception as e:
-        print(f"Error adding news: {e}")
-        return sendResponse (5000, action, str(e))
-
-    
 
