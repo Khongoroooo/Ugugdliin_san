@@ -238,7 +238,7 @@ export default function HomeScreen() {
           onPress={() => {
             AsyncStorage.removeItem("token");
             closeAllPanels();
-            router.replace("/login");
+            router.replace("/(tabs)/LoginiiDaraah");
           }}
         >
           <LinearGradient
