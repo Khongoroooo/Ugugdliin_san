@@ -114,6 +114,8 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
@@ -141,6 +143,7 @@ resultMessages = {
     1002: 'Баталгаажсан хэрэглэгч байна',
     1004: 'Бүртгэлгүй хэрэглэгч байна',
     500: 'id butsaaj chadsangvi',
+    501: 'amjiltgui',
 
     200: 'Success',
     204: 'No Content',
