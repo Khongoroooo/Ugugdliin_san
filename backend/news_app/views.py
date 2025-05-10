@@ -178,9 +178,9 @@ def getnews(request):
     try:
         with connectDB() as con:
             cur = con.cursor()
-            query = '''SELECT n.nid, news_title, n.content, huraangvi, published_at, c.category_id, c.catname 
+            query = '''SELECT n.nid, news_title, n.content, huraangvi, published_at, c.cat_id, c.category_name 
            FROM t_amay_news n
-           LEFT JOIN t_amay_news_category c on n.category_id=c.category_id
+           LEFT JOIN t_amay_news_category c on n.category_id=c.cat_id
            ORDER BY n.nid ASC'''
 
             cur.execute(query)

@@ -283,7 +283,440 @@ export default function HomeScreen() {
         <Text style={styles.sectionTitle}>Улс төрийн мэдээ</Text>
 
         <FlatList
-          data={items.filter((item) => item.catid === 2)}
+          data={items.filter((item) => item.cat_id === 1)}
+          keyExtractor={(item, index) => index.toString()}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ paddingHorizontal: 10, paddingVertical: 10 }}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={styles.card}
+              onPress={() => router.push(`/NewsDetailScreen?id=${item.id}`)}
+            >
+              <ImageBackground
+                source={{
+                  uri: item.image_url || "https://via.placeholder.com/300x180",
+                }}
+                style={styles.cardImage}
+                imageStyle={{
+                  borderTopLeftRadius: 16,
+                  borderTopRightRadius: 16,
+                }}
+              >
+                <LinearGradient
+                  colors={["rgba(0,0,0,0.6)", "transparent"]}
+                  style={styles.imageOverlay}
+                />
+              </ImageBackground>
+              <View style={styles.cardContent}>
+                <Text style={styles.cardTitle} numberOfLines={1}>
+                  {item.news_title}
+                </Text>
+                <Text style={styles.cardDescription} numberOfLines={2}>
+                  {item.huraangvi}
+                </Text>
+                <StarRating
+                  rating={calculateAverageRating(item.ratings || [])}
+                  onRatingChange={(rating) =>
+                    handleRatingChange(item.id, rating)
+                  }
+                />
+                <Text style={styles.cardRating}>
+                  {calculateAverageRating(item.ratings || []).toFixed(1)}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          )}
+        />
+
+        <Text style={styles.sectionTitle}>Урлаг соёл</Text>
+
+        <FlatList
+          data={items.filter((item) => item.cat_id === 2)}
+          keyExtractor={(item, index) => index.toString()}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ paddingHorizontal: 10, paddingVertical: 10 }}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={styles.card}
+              onPress={() => router.push(`/NewsDetailScreen?id=${item.id}`)}
+            >
+              <ImageBackground
+                source={{
+                  uri: item.image_url || "https://via.placeholder.com/300x180",
+                }}
+                style={styles.cardImage}
+                imageStyle={{
+                  borderTopLeftRadius: 16,
+                  borderTopRightRadius: 16,
+                }}
+              >
+                <LinearGradient
+                  colors={["rgba(0,0,0,0.6)", "transparent"]}
+                  style={styles.imageOverlay}
+                />
+              </ImageBackground>
+              <View style={styles.cardContent}>
+                <Text style={styles.cardTitle} numberOfLines={1}>
+                  {item.news_title}
+                </Text>
+                <Text style={styles.cardDescription} numberOfLines={2}>
+                  {item.huraangvi}
+                </Text>
+                <StarRating
+                  rating={calculateAverageRating(item.ratings || [])}
+                  onRatingChange={(rating) =>
+                    handleRatingChange(item.id, rating)
+                  }
+                />
+                <Text style={styles.cardRating}>
+                  {calculateAverageRating(item.ratings || []).toFixed(1)}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          )}
+        />
+        <Text style={styles.sectionTitle}>Эдийн засаг</Text>
+
+        <FlatList
+          data={items.filter((item) => item.cat_id === 3)}
+          keyExtractor={(item, index) => index.toString()}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ paddingHorizontal: 10, paddingVertical: 10 }}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={styles.card}
+              onPress={() => router.push(`/NewsDetailScreen?id=${item.id}`)}
+            >
+              <ImageBackground
+                source={{
+                  uri: item.image_url || "https://via.placeholder.com/300x180",
+                }}
+                style={styles.cardImage}
+                imageStyle={{
+                  borderTopLeftRadius: 16,
+                  borderTopRightRadius: 16,
+                }}
+              >
+                <LinearGradient
+                  colors={["rgba(0,0,0,0.6)", "transparent"]}
+                  style={styles.imageOverlay}
+                />
+              </ImageBackground>
+              <View style={styles.cardContent}>
+                <Text style={styles.cardTitle} numberOfLines={1}>
+                  {item.news_title}
+                </Text>
+                <Text style={styles.cardDescription} numberOfLines={2}>
+                  {item.huraangvi}
+                </Text>
+                <StarRating
+                  rating={calculateAverageRating(item.ratings || [])}
+                  onRatingChange={(rating) =>
+                    handleRatingChange(item.id, rating)
+                  }
+                />
+                <Text style={styles.cardRating}>
+                  {calculateAverageRating(item.ratings || []).toFixed(1)}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          )}
+        />
+        <Text style={styles.sectionTitle}>Нийгэм</Text>
+
+        <FlatList
+          data={items.filter((item) => item.cat_id === 4)}
+          keyExtractor={(item, index) => index.toString()}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ paddingHorizontal: 10, paddingVertical: 10 }}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={styles.card}
+              onPress={() => router.push(`/NewsDetailScreen?id=${item.id}`)}
+            >
+              <ImageBackground
+                source={{
+                  uri: item.image_url || "https://via.placeholder.com/300x180",
+                }}
+                style={styles.cardImage}
+                imageStyle={{
+                  borderTopLeftRadius: 16,
+                  borderTopRightRadius: 16,
+                }}
+              >
+                <LinearGradient
+                  colors={["rgba(0,0,0,0.6)", "transparent"]}
+                  style={styles.imageOverlay}
+                />
+              </ImageBackground>
+              <View style={styles.cardContent}>
+                <Text style={styles.cardTitle} numberOfLines={1}>
+                  {item.news_title}
+                </Text>
+                <Text style={styles.cardDescription} numberOfLines={2}>
+                  {item.huraangvi}
+                </Text>
+                <StarRating
+                  rating={calculateAverageRating(item.ratings || [])}
+                  onRatingChange={(rating) =>
+                    handleRatingChange(item.id, rating)
+                  }
+                />
+                <Text style={styles.cardRating}>
+                  {calculateAverageRating(item.ratings || []).toFixed(1)}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          )}
+        />
+        <Text style={styles.sectionTitle}>Спорт</Text>
+
+        <FlatList
+          data={items.filter((item) => item.cat_id === 5)}
+          keyExtractor={(item, index) => index.toString()}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ paddingHorizontal: 10, paddingVertical: 10 }}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={styles.card}
+              onPress={() => router.push(`/NewsDetailScreen?id=${item.id}`)}
+            >
+              <ImageBackground
+                source={{
+                  uri: item.image_url || "https://via.placeholder.com/300x180",
+                }}
+                style={styles.cardImage}
+                imageStyle={{
+                  borderTopLeftRadius: 16,
+                  borderTopRightRadius: 16,
+                }}
+              >
+                <LinearGradient
+                  colors={["rgba(0,0,0,0.6)", "transparent"]}
+                  style={styles.imageOverlay}
+                />
+              </ImageBackground>
+              <View style={styles.cardContent}>
+                <Text style={styles.cardTitle} numberOfLines={1}>
+                  {item.news_title}
+                </Text>
+                <Text style={styles.cardDescription} numberOfLines={2}>
+                  {item.huraangvi}
+                </Text>
+                <StarRating
+                  rating={calculateAverageRating(item.ratings || [])}
+                  onRatingChange={(rating) =>
+                    handleRatingChange(item.id, rating)
+                  }
+                />
+                <Text style={styles.cardRating}>
+                  {calculateAverageRating(item.ratings || []).toFixed(1)}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          )}
+        />
+        <Text style={styles.sectionTitle}>Технологи</Text>
+
+        <FlatList
+          data={items.filter((item) => item.cat_id ===6)}
+          keyExtractor={(item, index) => index.toString()}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ paddingHorizontal: 10, paddingVertical: 10 }}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={styles.card}
+              onPress={() => router.push(`/NewsDetailScreen?id=${item.id}`)}
+            >
+              <ImageBackground
+                source={{
+                  uri: item.image_url || "https://via.placeholder.com/300x180",
+                }}
+                style={styles.cardImage}
+                imageStyle={{
+                  borderTopLeftRadius: 16,
+                  borderTopRightRadius: 16,
+                }}
+              >
+                <LinearGradient
+                  colors={["rgba(0,0,0,0.6)", "transparent"]}
+                  style={styles.imageOverlay}
+                />
+              </ImageBackground>
+              <View style={styles.cardContent}>
+                <Text style={styles.cardTitle} numberOfLines={1}>
+                  {item.news_title}
+                </Text>
+                <Text style={styles.cardDescription} numberOfLines={2}>
+                  {item.huraangvi}
+                </Text>
+                <StarRating
+                  rating={calculateAverageRating(item.ratings || [])}
+                  onRatingChange={(rating) =>
+                    handleRatingChange(item.id, rating)
+                  }
+                />
+                <Text style={styles.cardRating}>
+                  {calculateAverageRating(item.ratings || []).toFixed(1)}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          )}
+        />
+        <Text style={styles.sectionTitle}>Дэлхий дахинд</Text>
+
+        <FlatList
+          data={items.filter((item) => item.cat_id === 7)}
+          keyExtractor={(item, index) => index.toString()}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ paddingHorizontal: 10, paddingVertical: 10 }}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={styles.card}
+              onPress={() => router.push(`/NewsDetailScreen?id=${item.id}`)}
+            >
+              <ImageBackground
+                source={{
+                  uri: item.image_url || "https://via.placeholder.com/300x180",
+                }}
+                style={styles.cardImage}
+                imageStyle={{
+                  borderTopLeftRadius: 16,
+                  borderTopRightRadius: 16,
+                }}
+              >
+                <LinearGradient
+                  colors={["rgba(0,0,0,0.6)", "transparent"]}
+                  style={styles.imageOverlay}
+                />
+              </ImageBackground>
+              <View style={styles.cardContent}>
+                <Text style={styles.cardTitle} numberOfLines={1}>
+                  {item.news_title}
+                </Text>
+                <Text style={styles.cardDescription} numberOfLines={2}>
+                  {item.huraangvi}
+                </Text>
+                <StarRating
+                  rating={calculateAverageRating(item.ratings || [])}
+                  onRatingChange={(rating) =>
+                    handleRatingChange(item.id, rating)
+                  }
+                />
+                <Text style={styles.cardRating}>
+                  {calculateAverageRating(item.ratings || []).toFixed(1)}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          )}
+        />
+        <Text style={styles.sectionTitle}>Боловсрол</Text>
+
+        <FlatList
+          data={items.filter((item) => item.cat_id === 8)}
+          keyExtractor={(item, index) => index.toString()}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ paddingHorizontal: 10, paddingVertical: 10 }}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={styles.card}
+              onPress={() => router.push(`/NewsDetailScreen?id=${item.id}`)}
+            >
+              <ImageBackground
+                source={{
+                  uri: item.image_url || "https://via.placeholder.com/300x180",
+                }}
+                style={styles.cardImage}
+                imageStyle={{
+                  borderTopLeftRadius: 16,
+                  borderTopRightRadius: 16,
+                }}
+              >
+                <LinearGradient
+                  colors={["rgba(0,0,0,0.6)", "transparent"]}
+                  style={styles.imageOverlay}
+                />
+              </ImageBackground>
+              <View style={styles.cardContent}>
+                <Text style={styles.cardTitle} numberOfLines={1}>
+                  {item.news_title}
+                </Text>
+                <Text style={styles.cardDescription} numberOfLines={2}>
+                  {item.huraangvi}
+                </Text>
+                <StarRating
+                  rating={calculateAverageRating(item.ratings || [])}
+                  onRatingChange={(rating) =>
+                    handleRatingChange(item.id, rating)
+                  }
+                />
+                <Text style={styles.cardRating}>
+                  {calculateAverageRating(item.ratings || []).toFixed(1)}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          )}
+        />
+        <Text style={styles.sectionTitle}>Эрүүл мэнд</Text>
+
+        <FlatList
+          data={items.filter((item) => item.cat_id === 9)}
+          keyExtractor={(item, index) => index.toString()}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ paddingHorizontal: 10, paddingVertical: 10 }}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={styles.card}
+              onPress={() => router.push(`/NewsDetailScreen?id=${item.id}`)}
+            >
+              <ImageBackground
+                source={{
+                  uri: item.image_url || "https://via.placeholder.com/300x180",
+                }}
+                style={styles.cardImage}
+                imageStyle={{
+                  borderTopLeftRadius: 16,
+                  borderTopRightRadius: 16,
+                }}
+              >
+                <LinearGradient
+                  colors={["rgba(0,0,0,0.6)", "transparent"]}
+                  style={styles.imageOverlay}
+                />
+              </ImageBackground>
+              <View style={styles.cardContent}>
+                <Text style={styles.cardTitle} numberOfLines={1}>
+                  {item.news_title}
+                </Text>
+                <Text style={styles.cardDescription} numberOfLines={2}>
+                  {item.huraangvi}
+                </Text>
+                <StarRating
+                  rating={calculateAverageRating(item.ratings || [])}
+                  onRatingChange={(rating) =>
+                    handleRatingChange(item.id, rating)
+                  }
+                />
+                <Text style={styles.cardRating}>
+                  {calculateAverageRating(item.ratings || []).toFixed(1)}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          )}
+        />
+        <Text style={styles.sectionTitle}>Соёл уламжлал</Text>
+
+        <FlatList
+          data={items.filter((item) => item.cat_id === 10)}
           keyExtractor={(item, index) => index.toString()}
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -449,7 +882,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    marginTop: 30,
+    marginTop: 3,
   },
   avatar: {
     width: 100,
@@ -468,7 +901,7 @@ const styles = StyleSheet.create({
   profileEmail: {
     fontSize: 14,
     color: "#333",
-    marginBottom: 20,
+    marginBottom: 10,
   },
   logoutButton: {
     paddingVertical: 10,
