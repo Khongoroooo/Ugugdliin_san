@@ -79,6 +79,9 @@ def checkService(request):
             elif data['action'] == 'login':
                 res = login(request)
                 return JsonResponse(res)
+            elif data['action'] == 'search':
+                res = search(request)
+                return JsonResponse(res)
             elif data['action'] == 'getnews':
                 res = getnews(request)
                 return JsonResponse(res)
@@ -264,4 +267,46 @@ def getcategory(request):
     except Exception as e:
         # print(f"############################ {e}")
         return sendResponse(5000)
+
+
+def search(request):
+    query = request.GET.get('q', '').strip()
+    
+    if not query:
+        return JsonResponse(sendResponse(4009, action="search"))
+
+    like_query = f"%{query}%"
+
+    try:
+        with connectDB() as conn:
+            cur = conn.cursor()
+            qu = '''
+                SELECT n.nid, news_title, n.content, huraangvi, published_at, 
+                       c.cat_id, c.category_name, image_url
+                FROM t_amay_news n
+                LEFT JOIN t_amay_news_category c ON n.category_id = c.cat_id
+                WHERE news_title LIKE %s OR n.content LIKE %s;
+            '''
+            cur.execute(qu, [like_query, like_query])
+            rows = cur.fetchall()
+    except Exception as e:
+        # optionally: log error `e`
+        return JsonResponse(sendResponse(4005, action="search"))
+
+    results = [
+        {
+            'id': row[0],
+            'title': row[1],
+            'content': row[2],
+            'summary': row[3],
+            'published_at': row[4],
+            'category_id': row[5],
+            'category_name': row[6],
+            'image_url': row[7],
+        }
+        for row in rows
+    ]
+
+    return JsonResponse(sendResponse(200, action="search", data=results))
+
 

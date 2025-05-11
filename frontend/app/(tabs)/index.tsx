@@ -16,6 +16,7 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { AnimatedView } from "react-native-reanimated/lib/typescript/component/View";
 
 const { width } = Dimensions.get("window");
 
@@ -50,6 +51,24 @@ export default function HomeScreen() {
   const [usdRate, setUsdRate] = useState("Loading...");
   const translateX = useRef(new Animated.Value(width)).current;
   const [token, setToken] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
+  const [result, setRelust] = useState(null);
+
+// const search = async () => {
+//   try{
+//     const response = await fetch ()
+//   }
+// }
+
+
+
+
+
+
+
+
+
+
 
   useEffect(() => {
     const fetchToken = async () => {
@@ -58,7 +77,6 @@ export default function HomeScreen() {
     };
     fetchToken();
   }, []);
-
 
   console.log(items)
   useEffect(() => {
@@ -160,6 +178,7 @@ export default function HomeScreen() {
             <Text style={styles.adText}>{ad.text}</Text>
           </Animated.View>
         </View>
+        
 
         <Text style={styles.sectionTitle}>Улс төрийн мэдээ</Text>
         
@@ -653,6 +672,13 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "transparent",
   },
+  sidePanel: {
+    position: "absolute",
+    top: 0,
+    bottom: 0,
+    width: "70%",
+    backgroundColor: "transparent",
+    zIndex: 999,},
   header: {
     padding: 20,
     paddingTop: 50,

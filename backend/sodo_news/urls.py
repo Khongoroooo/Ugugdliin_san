@@ -7,6 +7,8 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('user/', views.checkService), 
+    path('api/search/', views.search, name='search'), 
+
 ]
 
 

@@ -159,6 +159,7 @@ resultMessages = {
     4005: 'Database Error',
     4007: 'Password буруу байна',
     4008: 'Бүртгэлээ баталгаажуулна уу',
+    4009: 'утга олдсонгүй',
 
     5000: 'Server Error',
     5004: 'Register Service дотоод алдаа',
